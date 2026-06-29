@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import Player from './Player';
 
 class GameScene extends Phaser.Scene {
     constructor() {
@@ -10,33 +11,33 @@ class GameScene extends Phaser.Scene {
     }
 
     create() {
-        this.player = this.add.rectangle(400, 300, 32, 32, 0x00ff88);
+        this.player = new Player(this, 400, 300);
         this.cursors = this.input.keyboard.createCursorKeys();
         this.wasd = this.input.keyboard.addKeys({
             up: Phaser.Input.Keyboard.KeyCodes.W,
             down: Phaser.Input.Keyboard.KeyCodes.S,
             left: Phaser.Input.Keyboard.KeyCodes.A,
             right: Phaser.Input.Keyboard.KeyCodes.D,
-        })
+        });
     }
 
     update() {
         const speed = 3;
 
         if(this.cursors.left.isDown || this.wasd.left.isDown) {
-            this.player.x -= speed;
+            this.player.sprite.x -= this.player.speed;
         }
 
         if(this.cursors.right.isDown || this.wasd.right.isDown) {
-            this.player.x += speed;
+            this.player.sprite.x += this.player.speed;
         }
 
         if(this.cursors.up.isDown || this.wasd.up.isDown) {
-            this.player.y -= speed;
+            this.player.sprite.y -= this.player.speed;
         }
 
         if(this.cursors.down.isDown || this.wasd.down.isDown) {
-            this.player.y += speed;
+            this.player.sprite.y += this.player.speed;
         }
     }
 }
@@ -48,7 +49,5 @@ const config = {
     backgroundColor: '#1a1a2e',
     scene: GameScene,
 }
-
-
 
 const game = new Phaser.Game(config);
