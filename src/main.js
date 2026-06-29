@@ -22,8 +22,6 @@ class GameScene extends Phaser.Scene {
     }
 
     update() {
-        const speed = 3;
-
         if(this.cursors.left.isDown || this.wasd.left.isDown) {
             this.player.sprite.x -= this.player.speed;
         }
