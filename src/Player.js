@@ -29,6 +29,7 @@ export default class Player {
             head: null,
             chest: null,
             shoulders: null,
+            waist: null,
             legs: null,
             feet: null,
             hands: null,

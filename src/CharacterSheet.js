@@ -1,3 +1,8 @@
+const slotLayout = [
+    { slotName: 'head', label: 'Helm', x: 40, y: 100 },
+    { slotName: 'shoulders', label: 'Shoulder', x: 40, y: 150 }
+]
+
 export default class CharacterSheet {
     constructor(scene, player) {
         this.scene = scene;
@@ -31,82 +36,45 @@ export default class CharacterSheet {
             fill: '#00ff88',
         });
 
+        // Add everything to the container
+        this.container.add([
+            bg, // ALWAYS FIRST
+            title,
+            this.strengthText,
+            this.armorText,
+        ]);
+
         /*
         ========================================================================
         ||                             GEAR SLOTS                             ||
         ========================================================================
         */
 
-        /* ~~~~~~~~~~~~ HEAD ~~~~~~~~~~~~ */
-
-        // Head slot label
-        const headSlotLabel = this.scene.add.text(65, 90, 'Helm', {
-            fontSize: '14px',
-            fill: '#aaaaaa',
-        });
-
-        // Head slot box
-        this.headSlot = this.scene.add.rectangle(40, 100, 40, 40, 0x222223);
-        this.headSlot.setStrokeStyle(1, 0x8888ff);
-        this.headSlot.setInteractive();
-
-        // Slot status text
-        this.headSlotText = this.scene.add.text(15, 190, 'Empty', {
-            fontSize: '11px',
-            fill: '#666666',
-        });
-
-        /* ~~~~~~~~~~~~ SHOULDER ~~~~~~~~~~~~ */
-        // Shoulder slot label
-        const shoulderSlotLabel = this.scene.add.text(65, 145, 'Shoulders', {
-            fontSize: '14px',
-            fill: '#aaaaaa',
-        });
-
-        // Shoulder slot box
-        this.shoulderSlot = this.scene.add.rectangle(40, 150, 40, 40, 0x222223);
-        this.shoulderSlot.setStrokeStyle(1, 0x8888ff);
-        this.shoulderSlot.setInteractive();
-
-        // Slot status text
-        this.shoulderSlotText = this.scene.add.text(15, 170, 'Empty', {
-            fontSize: '11px',
-            fill: '#666666',
-        });
-
-        // Add everything to the container
-        this.container.add([
-            bg,
-            title,
-            this.strengthText,
-            this.armorText,
-
-            headSlotLabel,
-            shoulderSlotLabel,
-
-            this.headSlot,
-            this.headSlotText,
+        this.slots = {}
+        
+        slotLayout.forEach(({ slotName, label, x, y }) => {
+            const labelText = this.scene.add.text(x + 25, y - 10, label, { fontSize: '14px', fill: '#aaaaaa' });
+            const box = this.scene.add.rectangle(x, y, 40, 40, 0x222223);
             
-            this.shoulderSlot,
-            this.shoulderSlotText,
-        ]);
+            box.setStrokeStyle(1, 0x8888ff);
+            box.setInteractive();
+            const statusText = this.scene.add.text(x - 25, y + 20, 'Empty', { fontSize: '11px', fill: '#666666' });
 
-        // Click shoulder slot to toggle unequip
-        this.headSlot.on('pointerdown', () => {
-            if(this.player.equipment.head) {
-                this.unequip('head');
-            }
+            box.on('pointerdown', () => {
+                if(this.player.equipment[slotName]) this.unequip(slotName);
+            });
+
+            // Add to container
+            this.container.add([
+                labelText,
+                box,
+                statusText
+            ]);
+
+            this.slots[slotName] = { box, statusText };
+            console.log(this.slots);
         });
-
-        // Click shoulder slot to toggle unequip
-        this.shoulderSlot.on('pointerdown', () => {
-            if(this.player.equipment.shoulders) {
-                this.unequip('shoulders');
-            }
-        });
-
-
-
+        
     }
 
     equip(item) {
@@ -120,16 +88,12 @@ export default class CharacterSheet {
     }
 
     refresh() {
-        const isHeadEquipped = this.player.equipment.head !== null;
-        const isShouldersEquipped = this.player.equipment.shoulders !== null;
-        
-        this.headSlotText.setText(isHeadEquipped ? 'Equipped' : 'Empty');
-        this.headSlotText.setStyle({ fill: isHeadEquipped ? '#00ff88' : '#666666'});
-        this.headSlot.setFillStyle(isHeadEquipped ? 0x223322 : 0x222233);
-
-        this.shoulderSlotText.setText(isShouldersEquipped ? 'Equipped' : 'Empty');
-        this.shoulderSlotText.setStyle({ fill: isShouldersEquipped ? '#00ff88' : '#666666' });
-        this.shoulderSlot.setFillStyle(isShouldersEquipped ? 0x223322 : 0x222233);
+        Object.entries(this.slots).forEach(([slotName, { box, statusText }]) => {
+            const isEquipped = this.player.equipment[slotName] !== null;
+            statusText.setText(isEquipped ? 'Equipped' : 'Empty');
+            statusText.setStyle({ fill: isEquipped ? '#00ff88' : '#666666' });
+            box.setFillStyle(isEquipped ? 0x223322 : 0x222233);
+        });
 
         this.strengthText.setText(`Strength: ${this.player.strength}`);
         this.armorText.setText(`Armor: ${this.player.armor}`);
