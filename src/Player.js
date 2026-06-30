@@ -31,10 +31,10 @@ export default class Player {
             legs: null,
             feet: null,
             hands: null,
-            mainHand: null,
-            offHand: null,
             trinket: null,
             relic: null,
+            mainHand: null,
+            offHand: null,
         }
 
         // Active Consumables
@@ -51,25 +51,25 @@ export default class Player {
     get strength() {
         return Object.values(this.equipment)
             .filter(item => item !== null)
-            .reduce((total, item) => total + (item.strength || 0), 0);
+            .reduce((total, item) => total + (item.stats?.strength || 0), 0);
     }
 
     get agility() {
         return Object.values(this.equipment)
             .filter(item => item !== null)
-            .reduce((total, item) => total + (item.agility || 0), 0);
+            .reduce((total, item) => total + (item.stats?.agility || 0), 0);
     }
 
     get intellect() {
         return Object.values(this.equipment)
             .filter(item => item !== null)
-            .reduce((total, item) => total + (item.intellect || 0), 0);
+            .reduce((total, item) => total + (item.stats?.intellect || 0), 0);
     }
 
     get armor() {
         return Object.values(this.equipment)
             .filter(item => item !== null)
-            .reduce((total, item) => total + (item.armor || 0), 0);
+            .reduce((total, item) => total + (item.stats?.armor || 0), 0);
     }
 
     get fireResistance() {

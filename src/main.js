@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 import Player from './Player';
+import Item from './Item';
+import CharacterSheet from './CharacterSheet';
 
 class GameScene extends Phaser.Scene {
     constructor() {
@@ -19,6 +21,17 @@ class GameScene extends Phaser.Scene {
             left: Phaser.Input.Keyboard.KeyCodes.A,
             right: Phaser.Input.Keyboard.KeyCodes.D,
         });
+
+        this.shoulderPad = new Item('Shoulder Pad', 'shoulders', { strength: 5, armor: 10 });
+
+        this.characterSheet = new CharacterSheet(this, this.player);
+
+        // C key to toggle character sheet
+        this.input.keyboard.on('keydown-C', () => {
+            this.characterSheet.toggle();
+        });
+
+        
     }
 
     update() {
