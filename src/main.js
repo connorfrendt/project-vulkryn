@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import Player from './Player';
-import Item from './Item';
+import Item from './items/Item';
 import CharacterSheet from './CharacterSheet';
 
 class GameScene extends Phaser.Scene {
@@ -23,6 +23,14 @@ class GameScene extends Phaser.Scene {
         });
 
         this.shoulderPad = new Item('Shoulder Pad', 'shoulders', { strength: 5, armor: 10 });
+        this.shoulderPadSprite = this.add.rectangle(600, 200, 24, 24, 0xffaa00);
+        this.shoulderPadSprite.setStrokeStyle(2, 0xffffff);
+        this.shoulderPadSprite.setInteractive();
+
+        this.shoulderPadSprite.on('pointerdown', () => {
+            this.characterSheet.equip(this.shoulderPad);
+            this.shoulderPadSprite.setVisible(false);
+        });
 
         this.characterSheet = new CharacterSheet(this, this.player);
 
@@ -30,8 +38,6 @@ class GameScene extends Phaser.Scene {
         this.input.keyboard.on('keydown-C', () => {
             this.characterSheet.toggle();
         });
-
-        
     }
 
     update() {

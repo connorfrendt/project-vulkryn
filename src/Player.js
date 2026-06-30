@@ -28,6 +28,7 @@ export default class Player {
         this.equipment = {
             head: null,
             chest: null,
+            shoulders: null,
             legs: null,
             feet: null,
             hands: null,

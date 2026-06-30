@@ -82,21 +82,20 @@ export default class CharacterSheet {
     }
 
     refresh() {
-        console.log('refreshed');
-        this.strengthText.setText(`Strength: ${this.player.strength}`);
-        this.armorText.setText(`Armor: ${this.player.armor}`);
-
         const isEquipped = this.player.equipment.shoulders !== null;
+        
         this.slotText.setText(isEquipped ? 'Equipped' : 'Empty');
         this.slotText.setStyle({ fill: isEquipped ? '#00ff88' : '#666666' });
         this.shoulderSlot.setFillStyle(isEquipped ? 0x223322 : 0x222233);
+
+        this.strengthText.setText(`Strength: ${this.player.strength}`);
+        this.armorText.setText(`Armor: ${this.player.armor}`);
     }
     
     toggle() {
         this.visible = !this.visible;
         this.container.setVisible(this.visible);
         if(this.visible) {
-            console.log('HERE');
             this.refresh();
         }
     }
