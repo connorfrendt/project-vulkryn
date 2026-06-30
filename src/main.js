@@ -1,7 +1,12 @@
 import Phaser from 'phaser';
 import Player from './Player';
+
 import Item from './items/Item';
+import { createItem } from './items/ItemFactory';
+import { itemSpawns } from './items/itemSpawns';
+
 import CharacterSheet from './CharacterSheet';
+import WorldItem from './items/WorldItem';
 
 class GameScene extends Phaser.Scene {
     constructor() {
@@ -22,15 +27,16 @@ class GameScene extends Phaser.Scene {
             right: Phaser.Input.Keyboard.KeyCodes.D,
         });
 
-        this.shoulderPad = new Item('Shoulder Pad', 'shoulders', { strength: 5, armor: 10 });
-        this.shoulderPadSprite = this.add.rectangle(600, 200, 24, 24, 0xffaa00);
-        this.shoulderPadSprite.setStrokeStyle(2, 0xffffff);
-        this.shoulderPadSprite.setInteractive();
-
-        this.shoulderPadSprite.on('pointerdown', () => {
-            this.characterSheet.equip(this.shoulderPad);
-            this.shoulderPadSprite.setVisible(false);
-        });
+        // Item Spawns in Overworld
+        this.worldItem = itemSpawns.map(spawn => {
+            const worldItem = new WorldItem(this, createItem(spawn.key), spawn.x, spawn.y);
+            
+            worldItem.onPickup((item) => {
+                this.characterSheet.equip(item);
+            });
+            
+            return worldItem;
+        })
 
         this.characterSheet = new CharacterSheet(this, this.player);
 
@@ -40,6 +46,7 @@ class GameScene extends Phaser.Scene {
         });
     }
 
+    // Movement (so far...)
     update() {
         if(this.cursors.left.isDown || this.wasd.left.isDown) {
             this.player.sprite.x -= this.player.speed;

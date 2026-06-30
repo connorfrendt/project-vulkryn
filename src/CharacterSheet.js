@@ -31,8 +31,34 @@ export default class CharacterSheet {
             fill: '#00ff88',
         });
 
+        /*
+        ========================================================================
+        ||                             GEAR SLOTS                             ||
+        ========================================================================
+        */
+
+        /* ~~~~~~~~~~~~ HEAD ~~~~~~~~~~~~ */
+
+        // Head slot label
+        const headSlotLabel = this.scene.add.text(65, 90, 'Helm', {
+            fontSize: '14px',
+            fill: '#aaaaaa',
+        });
+
+        // Head slot box
+        this.headSlot = this.scene.add.rectangle(40, 100, 40, 40, 0x222223);
+        this.headSlot.setStrokeStyle(1, 0x8888ff);
+        this.headSlot.setInteractive();
+
+        // Slot status text
+        this.headSlotText = this.scene.add.text(15, 190, 'Empty', {
+            fontSize: '11px',
+            fill: '#666666',
+        });
+
+        /* ~~~~~~~~~~~~ SHOULDER ~~~~~~~~~~~~ */
         // Shoulder slot label
-        const slotLabel = this.scene.add.text(65, 145, 'Shoulders', {
+        const shoulderSlotLabel = this.scene.add.text(65, 145, 'Shoulders', {
             fontSize: '14px',
             fill: '#aaaaaa',
         });
@@ -43,7 +69,7 @@ export default class CharacterSheet {
         this.shoulderSlot.setInteractive();
 
         // Slot status text
-        this.slotText = this.scene.add.text(15, 170, 'Empty', {
+        this.shoulderSlotText = this.scene.add.text(15, 170, 'Empty', {
             fontSize: '11px',
             fill: '#666666',
         });
@@ -54,20 +80,32 @@ export default class CharacterSheet {
             title,
             this.strengthText,
             this.armorText,
-            slotLabel,
+
+            headSlotLabel,
+            shoulderSlotLabel,
+
+            this.headSlot,
+            this.headSlotText,
+            
             this.shoulderSlot,
-            this.slotText,
+            this.shoulderSlotText,
         ]);
 
-        // Click shoulder slot to toggle equip
+        // Click shoulder slot to toggle unequip
+        this.headSlot.on('pointerdown', () => {
+            if(this.player.equipment.head) {
+                this.unequip('head');
+            }
+        });
+
+        // Click shoulder slot to toggle unequip
         this.shoulderSlot.on('pointerdown', () => {
             if(this.player.equipment.shoulders) {
                 this.unequip('shoulders');
             }
-            else {
-                this.equip(this.scene.shoulderPad);
-            }
         });
+
+
 
     }
 
@@ -82,11 +120,16 @@ export default class CharacterSheet {
     }
 
     refresh() {
-        const isEquipped = this.player.equipment.shoulders !== null;
+        const isHeadEquipped = this.player.equipment.head !== null;
+        const isShouldersEquipped = this.player.equipment.shoulders !== null;
         
-        this.slotText.setText(isEquipped ? 'Equipped' : 'Empty');
-        this.slotText.setStyle({ fill: isEquipped ? '#00ff88' : '#666666' });
-        this.shoulderSlot.setFillStyle(isEquipped ? 0x223322 : 0x222233);
+        this.headSlotText.setText(isHeadEquipped ? 'Equipped' : 'Empty');
+        this.headSlotText.setStyle({ fill: isHeadEquipped ? '#00ff88' : '#666666'});
+        this.headSlot.setFillStyle(isHeadEquipped ? 0x223322 : 0x222233);
+
+        this.shoulderSlotText.setText(isShouldersEquipped ? 'Equipped' : 'Empty');
+        this.shoulderSlotText.setStyle({ fill: isShouldersEquipped ? '#00ff88' : '#666666' });
+        this.shoulderSlot.setFillStyle(isShouldersEquipped ? 0x223322 : 0x222233);
 
         this.strengthText.setText(`Strength: ${this.player.strength}`);
         this.armorText.setText(`Armor: ${this.player.armor}`);
