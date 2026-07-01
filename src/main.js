@@ -10,6 +10,9 @@ import WorldItem from './items/WorldItem.js';
 
 import Backpack from './Backpack.js';
 
+import Enemy from './Enemy.js';
+import LootWindow from './LootWindow.js';
+
 class GameScene extends Phaser.Scene {
     constructor() {
         super({ key: 'GameScene' });
@@ -32,7 +35,7 @@ class GameScene extends Phaser.Scene {
 
         // Item Spawns in Overworld
         this.worldItem = itemSpawns.map(spawn => {
-            const worldItem = new WorldItem(this, createItem(spawn.key), spawn.x, spawn.y);
+            const worldItem = new WorldItem(this, createItem(spawn.itemId), spawn.x, spawn.y);
             
             worldItem.onPickup((item) => {
                 this.player.addToInventory(item);
@@ -56,6 +59,38 @@ class GameScene extends Phaser.Scene {
         });
         this.backpack.onEquip = () => {
             this.characterSheet.refresh();
+        }
+
+        // Basic Attack
+        this.input.keyboard.on('keydown-F', () => {
+            if(this.spider && this.spider.alive) {
+                this.spider.takeDamage(10);
+            }
+        })
+
+        this.lootWindow = new LootWindow(this, this.player);
+
+        this.lootWindow.onItemTaken = () => {
+            this.backpack.refresh();
+        }
+
+        // Spawn spider enemy
+        this.spider = new Enemy(this, 300, 200, {
+            name: 'Cave Spider',
+            hp: 30,
+            maxHp: 30,
+            lootTable: {
+                guaranteed: [
+                    
+                ],
+                chance: [
+                    { itemId: 'shoulderPad', chance: 1.0 }
+                ],
+            }
+        });
+
+        this.spider.onLoot = (loot) => {
+            this.lootWindow.open(loot, this.spider);
         }
     }
 

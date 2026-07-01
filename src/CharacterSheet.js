@@ -72,9 +72,8 @@ export default class CharacterSheet {
             ]);
 
             this.slots[slotName] = { box, statusText };
-            console.log(this.slots);
         });
-        
+
     }
 
     equip(item) {
