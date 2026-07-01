@@ -1,12 +1,14 @@
 import Phaser from 'phaser';
-import Player from './Player';
+import Player from './Player.js';
 
 import Item from './items/Item';
-import { createItem } from './items/ItemFactory';
-import { itemSpawns } from './items/itemSpawns';
+import { createItem } from './items/ItemFactory.js';
+import { itemSpawns } from './items/itemSpawns.js';
 
-import CharacterSheet from './CharacterSheet';
-import WorldItem from './items/WorldItem';
+import CharacterSheet from './CharacterSheet.js';
+import WorldItem from './items/WorldItem.js';
+
+import Backpack from './Backpack.js';
 
 class GameScene extends Phaser.Scene {
     constructor() {
@@ -18,6 +20,7 @@ class GameScene extends Phaser.Scene {
     }
 
     create() {
+        this.input.mouse.disableContextMenu();
         this.player = new Player(this, 400, 300);
         this.cursors = this.input.keyboard.createCursorKeys();
         this.wasd = this.input.keyboard.addKeys({
@@ -32,18 +35,28 @@ class GameScene extends Phaser.Scene {
             const worldItem = new WorldItem(this, createItem(spawn.key), spawn.x, spawn.y);
             
             worldItem.onPickup((item) => {
-                this.characterSheet.equip(item);
+                this.player.addToInventory(item);
+                this.backpack.refresh();
             });
             
             return worldItem;
         })
 
         this.characterSheet = new CharacterSheet(this, this.player);
+        this.backpack = new Backpack(this, this.player);
 
         // C key to toggle character sheet
         this.input.keyboard.on('keydown-C', () => {
             this.characterSheet.toggle();
         });
+
+        // B key to toggle backpack
+        this.input.keyboard.on('keydown-B', () => {
+            this.backpack.toggle();
+        });
+        this.backpack.onEquip = () => {
+            this.characterSheet.refresh();
+        }
     }
 
     // Movement (so far...)

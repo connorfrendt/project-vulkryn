@@ -39,6 +39,9 @@ export default class Player {
             offHand: null,
         }
 
+        this.inventoryMax = 6;
+        this.inventory = [];
+
         // Active Consumables
         this.consumables = {
             fireResistancePotion: null,
@@ -50,6 +53,7 @@ export default class Player {
         this.sprite = scene.add.rectangle(x, y, 32, 32, 0x00ff88);
     }
 
+    // Stats
     get strength() {
         return Object.values(this.equipment)
             .filter(item => item !== null)
@@ -68,6 +72,28 @@ export default class Player {
             .reduce((total, item) => total + (item.stats?.intellect || 0), 0);
     }
 
+    // Inventory
+    addToInventory(item) {
+        if(this.inventory.length >= this.inventoryMax) {
+            return false;
+        }
+        else {
+            this.inventory.push(item);
+            return true;
+        }
+    }
+
+    removeFromInventory(item) {
+        const index = this.inventory.indexOf(item);
+        if(index === -1) {
+            return;
+        }
+        else {
+            this.inventory.splice(index, 1);
+        }
+    }
+
+    // Resistances
     get armor() {
         return Object.values(this.equipment)
             .filter(item => item !== null)
