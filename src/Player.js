@@ -50,7 +50,9 @@ export default class Player {
         }
 
         this.speed = 3;
-        this.sprite = scene.add.rectangle(x, y, 32, 32, 0x00ff88);
+
+        // Visual
+        this.sprite = scene.add.sprite(x, y, 'player', 0);
     }
 
     // Stats

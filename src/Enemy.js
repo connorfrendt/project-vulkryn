@@ -8,8 +8,9 @@ export default class Enemy {
         this.alive = true;
 
         // Visual
-        this.sprite = scene.add.rectangle(x, y, 32, 32, 0xff4444);
-        this.sprite.setStrokeStyle(2, 0xffffff);
+        this.sprite = scene.add.sprite(x, y, 'enemy', 0);
+        // this.sprite = scene.add.rectangle(x, y, 32, 32, 0xff4444);
+        // this.sprite.setStrokeStyle(2, 0xffffff);
 
         // HP bar background
         this.hpBarBg = scene.add.rectangle(x, y - 28, 40, 6, 0x440000);
@@ -63,7 +64,7 @@ export default class Enemy {
     die() {
         this.alive = false;
         this.looted = false;
-        this.sprite.setFillStyle(0x444444);
+        this.sprite.setTexture('enemy-dead', 3);
         this.nameText.setText(`${this.name } (Dead)`) // placeholder for now
         this.hpBar.setVisible(false);
 

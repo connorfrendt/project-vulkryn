@@ -19,7 +19,18 @@ class GameScene extends Phaser.Scene {
     }
 
     preload() {
-
+        this.load.spritesheet('player', '/assets/Sprites/character-sprites/Soldier/Soldier/Soldier_Idle.png', {
+            frameWidth: 100,
+            frameHeight: 100,
+        });
+        this.load.spritesheet('enemy', '/assets/Sprites/character-sprites/Orc/Orc/Orc_Idle.png', {
+            frameWidth: 100,
+            frameHeight: 100,
+        });
+        this.load.spritesheet('enemy-dead', '/assets/Sprites/character-sprites/Orc/Orc/Orc_Death.png', {
+            frameWidth: 100,
+            frameHeight: 100,
+        });
     }
 
     create() {
@@ -63,8 +74,8 @@ class GameScene extends Phaser.Scene {
 
         // Basic Attack
         this.input.keyboard.on('keydown-F', () => {
-            if(this.spider && this.spider.alive) {
-                this.spider.takeDamage(10);
+            if(this.orc && this.orc.alive) {
+                this.orc.takeDamage(10);
             }
         })
 
@@ -74,9 +85,9 @@ class GameScene extends Phaser.Scene {
             this.backpack.refresh();
         }
 
-        // Spawn spider enemy
-        this.spider = new Enemy(this, 300, 200, {
-            name: 'Cave Spider',
+        // Spawn Orc enemy
+        this.orc = new Enemy(this, 300, 200, {
+            name: 'Cave Orc',
             hp: 30,
             maxHp: 30,
             lootTable: {
@@ -89,8 +100,8 @@ class GameScene extends Phaser.Scene {
             }
         });
 
-        this.spider.onLoot = (loot) => {
-            this.lootWindow.open(loot, this.spider);
+        this.orc.onLoot = (loot) => {
+            this.lootWindow.open(loot, this.orc);
         }
     }
 
