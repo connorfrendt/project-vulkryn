@@ -23,7 +23,7 @@ export default class LootWindow {
             fill: '#ffaa00',
         });
         this.container.add(lootTitle);
-        
+
         // Loot slot boxes - up to 6 items
         this.lootSlots = [];
 
@@ -49,6 +49,17 @@ export default class LootWindow {
             this.container.add([box, itemText]);
             this.lootSlots.push({ box, itemText });
         }
+
+        this.closeButton = this.scene.add.text(385, 188, 'X', {
+            fontSize: '14px',
+            fill: '#ff4444',
+        }).setInteractive();
+
+        this.closeButton.on('pointerdown', () => {
+            this.close();
+        });
+
+        this.container.add(this.closeButton);
     }
 
     open(lootKeys, enemy) {
@@ -60,8 +71,14 @@ export default class LootWindow {
     }
 
     close() {
+        const allLooted = this.currentLoot.every(item => item === null);
+        console.log('All looted', allLooted)
         if(this.currentEnemy) {
-            this.currentEnemy.looted = true;
+            if(allLooted) {
+                this.currentEnemy.looted = true;
+                this.currentEnemy.sprite.removeInteractive();
+            }
+            
             this.currentEnemy = null;
         }
         this.container.setVisible(false);

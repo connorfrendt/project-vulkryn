@@ -53,7 +53,6 @@ export default class Enemy {
         // Roll for chance drops
         this.lootTable.chance.forEach(({ itemId, chance }) => {
             if(Math.random() < chance) {
-                console.log('CHANCE', );
                 loot.push(itemId);
             }
         });
