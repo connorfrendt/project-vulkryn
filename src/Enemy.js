@@ -9,26 +9,26 @@ export default class Enemy {
         this.lootTable = config.lootTable;
         this.alive = true;
         this.attackCooldown = 0;
-        this.attackInterval = 500; // ms between attacks (3s)
+        this.attackInterval = 3000; // ms between attacks (3s)
         this.attackDamage = config.attackDamage || 20;
-
-        // Visual
-        this.sprite = scene.add.sprite(x, y, 'enemy', 0);
-        // this.sprite = scene.add.rectangle(x, y, 32, 32, 0xff4444);
-        // this.sprite.setStrokeStyle(2, 0xffffff);
-
+        
         // HP bar background
         this.hpBarBg = scene.add.rectangle(x, y - 28, 40, 6, 0x440000);
-
+        
         // HP bar fill
         this.hpBar = scene.add.rectangle(x - 20, y - 28, 40, 6, 0xff0000);
         this.hpBar.setOrigin(0, 0.5);
-
+        
         // Name text
         this.nameText = scene.add.text(x, y - 40, this.name, {
             fontSize: '11px',
             fill: '#ffffff',
         });
+
+        // Visual
+        this.sprite = scene.add.sprite(x, y, 'enemy-idle', 0);
+        this.sprite.setScale(2);
+        this.sprite.play('enemy-idle');
     }
 
     moveTowardPlayer(player) {
@@ -49,6 +49,15 @@ export default class Enemy {
             const angle = Math.atan2(dy, dx);
             this.sprite.x += Math.cos(angle) * speed * (this.scene.game.loop.delta / 1000);
             this.sprite.y += Math.sin(angle) * speed * (this.scene.game.loop.delta / 1000);
+            
+            if(this.sprite.anims.getName() !== 'enemy-attack') {
+                this.sprite.play('enemy-walk', true);
+            }
+            else {
+                if(this.sprite.anims.getName() !== 'enemy-attack') {
+                    this.sprite.play('enemy-idle', true);
+                }
+            }
         }
     }
 
@@ -61,14 +70,19 @@ export default class Enemy {
         );
 
         if(distance <= 60) {
+            console.log('distance is less than 60');
             this.attackCooldown -= delta;
             if(this.attackCooldown <= 0) {
                 player.takeDamage(this.attackDamage);
+                this.sprite.play('enemy-attack', false);
                 this.attackCooldown = this.attackInterval;
             }
         }
         else {
             this.attackCooldown = 0;
+            if(this.sprite.anims.getName() === 'enemy-attack' && !this.sprite.anims.isPlaying) {
+                this.sprite.play('enemy-idle', true);
+            }
         }
     }
 

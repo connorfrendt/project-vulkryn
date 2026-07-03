@@ -19,7 +19,15 @@ class GameScene extends Phaser.Scene {
     }
 
     preload() {
-        this.load.spritesheet('player', '/assets/Sprites/character-sprites/Soldier/Soldier/Soldier_Idle.png', {
+        this.load.spritesheet('player-idle', '/assets/Sprites/character-sprites/Soldier/Soldier/Soldier_Idle.png', {
+            frameWidth: 100,
+            frameHeight: 100,
+        });
+        this.load.spritesheet('player-walk', '/assets/Sprites/character-sprites/Soldier/Soldier/Soldier_Walk.png', {
+            frameWidth: 100,
+            frameHeight: 100,
+        });
+        this.load.spritesheet('player-attack', '/assets/Sprites/character-sprites/Soldier/Soldier/Soldier_Attack01.png', {
             frameWidth: 100,
             frameHeight: 100,
         });
@@ -27,7 +35,15 @@ class GameScene extends Phaser.Scene {
             frameWidth: 100,
             frameHeight: 100,
         });
-        this.load.spritesheet('enemy', '/assets/Sprites/character-sprites/Orc/Orc/Orc_Idle.png', {
+        this.load.spritesheet('enemy-idle', '/assets/Sprites/character-sprites/Orc/Orc/Orc_Idle.png', {
+            frameWidth: 100,
+            frameHeight: 100,
+        });
+        this.load.spritesheet('enemy-walk', '/assets/Sprites/character-sprites/Orc/Orc/Orc_Walk.png', {
+            frameWidth: 100,
+            frameHeight: 100,
+        });
+        this.load.spritesheet('enemy-attack', '/assets/Sprites/character-sprites/Orc/Orc/Orc_Attack01.png', {
             frameWidth: 100,
             frameHeight: 100,
         });
@@ -39,7 +55,7 @@ class GameScene extends Phaser.Scene {
 
     create() {
         this.input.mouse.disableContextMenu();
-        this.player = new Player(this, 400, 300);
+        this.player = new Player(this, 700, 300);
         this.cursors = this.input.keyboard.createCursorKeys();
         this.wasd = this.input.keyboard.addKeys({
             up: Phaser.Input.Keyboard.KeyCodes.W,
@@ -92,9 +108,17 @@ class GameScene extends Phaser.Scene {
 
         this.enemies = [];
 
+        this.anims.create({ key: 'player-idle', frames: this.anims.generateFrameNumbers('player-idle', { start: 0, end: 5 }), frameRate: 8, repeat: -1 });
+        this.anims.create({ key: 'player-walk', frames: this.anims.generateFrameNumbers('player-walk', { start: 0, end: 7 }), frameRate: 10, repeat: -1 });
+        this.anims.create({ key: 'player-attack', frames: this.anims.generateFrameNumbers('player-attack', { start: 0, end: 5 }), frameRate: 12, repeat: 0 });
+        this.anims.create({ key: 'enemy-idle', frames: this.anims.generateFrameNumbers('enemy-idle', { start: 0, end: 5 }), frameRate: 8, repeat: -1 });
+        this.anims.create({ key: 'enemy-walk', frames: this.anims.generateFrameNumbers('enemy-walk', { start: 0, end: 7 }), frameRate: 10, repeat: -1 });
+        this.anims.create({ key: 'enemy-attack', frames: this.anims.generateFrameNumbers('enemy-attack', { start: 0, end: 5 }), frameRate: 12, repeat: 0 });
+        this.player.sprite.play('player-idle');
+
         this.playerDeathTimer = 0;
         this.player.onDeath = () => {
-            this.playerDeathTimer = 1000;
+            this.playerDeathTimer = 2000;
         }
 
         this.spawnEnemy(300, 200, {
@@ -160,59 +184,72 @@ class GameScene extends Phaser.Scene {
             }
         }
 
-        // Capture movement direction
-        let dirX = 0;
-        let dirY = 0;
-        if(this.cursors.left.isDown || this.wasd.left.isDown) dirX = -1;
-        if(this.cursors.right.isDown || this.wasd.right.isDown) dirX = 1;
-        if(this.cursors.up.isDown || this.wasd.up.isDown) dirY = -1;
-        if(this.cursors.down.isDown || this.wasd.down.isDown) dirY = 1;
+        if(this.player.alive) {
 
-        // Dash Start
-        if(Phaser.Input.Keyboard.JustDown(this.spaceKey) && !this.dashActive && (dirX != 0 || dirY !== 0)) {
-            this.dashActive = true;
-            this.dashTimer = 150;
-            this.dashDirX = dirX;
-            this.dashDirY = dirY;
-            this.player.speed = 8;
-        }
-
-        // Dash Tick
-        if(this.dashActive) {
-            this.dashTimer -= this.game.loop.delta;
-            if(this.dashTimer <= 0) {
-                this.dashActive = false;
-                this.player.speed = 2;
+            // Capture movement direction
+            let dirX = 0;
+            let dirY = 0;
+            if(this.cursors.left.isDown || this.wasd.left.isDown) dirX = -1;
+            if(this.cursors.right.isDown || this.wasd.right.isDown) dirX = 1;
+            if(this.cursors.up.isDown || this.wasd.up.isDown) dirY = -1;
+            if(this.cursors.down.isDown || this.wasd.down.isDown) dirY = 1;
+    
+            // Dash Start
+            if(Phaser.Input.Keyboard.JustDown(this.spaceKey) && !this.dashActive && (dirX != 0 || dirY !== 0)) {
+                this.dashActive = true;
+                this.dashTimer = 150;
+                this.dashDirX = dirX;
+                this.dashDirY = dirY;
+                this.player.speed = 8;
             }
-        }
-
-        // Movement
-        const moveX = this.dashActive ? this.dashDirX : dirX;
-        const moveY = this.dashActive ? this.dashDirY : dirY;
-        this.player.sprite.x += moveX * this.player.speed;
-        this.player.sprite.y += moveY * this.player.speed;
-
-        // Attack Key
-        if(Phaser.Input.Keyboard.JustDown(this.attackKey)) {
-            const attackRange = 60;
-            const aliveEnemies = this.enemies.filter(enemy => enemy.alive);
-            const target = aliveEnemies.sort((a, b) =>
-                Phaser.Math.Distance.Between(this.player.sprite.x, this.player.sprite.y, a.sprite.x, a.sprite.y) -
-                Phaser.Math.Distance.Between(this.player.sprite.x, this.player.sprite.y, b.sprite.x, b.sprite.y)
-
-            )[0];
-
-            if(target) {
-                const distance = Phaser.Math.Distance.Between(
-                    this.player.sprite.x, this.player.sprite.y,
-                    target.sprite.x, target.sprite.y
-                );
-
-                if(distance <= attackRange) {
-                    target.takeDamage(10);
+    
+            // Dash Tick
+            if(this.dashActive) {
+                this.dashTimer -= this.game.loop.delta;
+                if(this.dashTimer <= 0) {
+                    this.dashActive = false;
+                    this.player.speed = 2;
+                }
+            }
+    
+            // Movement
+            const moveX = this.dashActive ? this.dashDirX : dirX;
+            const moveY = this.dashActive ? this.dashDirY : dirY;
+            this.player.sprite.x += moveX * this.player.speed;
+            this.player.sprite.y += moveY * this.player.speed;
+    
+            if(this.player.sprite.anims.getName() !== 'player-attack') {
+                if(moveX !==0 || moveY !== 0) {
+                    this.player.sprite.play('player-walk', true);
                 }
                 else {
-                    console.log('Enemy out of range');
+                    this.player.sprite.play('player-idle', true);
+                }
+            }
+    
+            // Attack Key
+            if(Phaser.Input.Keyboard.JustDown(this.attackKey)) {
+                const attackRange = 60;
+                const aliveEnemies = this.enemies.filter(enemy => enemy.alive);
+                const target = aliveEnemies.sort((a, b) =>
+                    Phaser.Math.Distance.Between(this.player.sprite.x, this.player.sprite.y, a.sprite.x, a.sprite.y) -
+                    Phaser.Math.Distance.Between(this.player.sprite.x, this.player.sprite.y, b.sprite.x, b.sprite.y)
+    
+                )[0];
+    
+                if(target) {
+                    const distance = Phaser.Math.Distance.Between(
+                        this.player.sprite.x, this.player.sprite.y,
+                        target.sprite.x, target.sprite.y
+                    );
+    
+                    if(distance <= attackRange) {
+                        target.takeDamage(10);
+                        this.player.sprite.play('player-attack', false);
+                    }
+                    else {
+                        console.log('Enemy out of range');
+                    }
                 }
             }
         }
