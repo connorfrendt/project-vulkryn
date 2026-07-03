@@ -1,6 +1,7 @@
 export default class Player {
     constructor(scene, x, y) {
         this.scene = scene;
+        this.alive = true;
 
         // Core Stats
         this.level = 1;
@@ -49,7 +50,7 @@ export default class Player {
             shadowResistancePotion: null,
         }
 
-        this.speed = 3;
+        this.speed = 2;
 
         // Visual
         this.sprite = scene.add.sprite(x, y, 'player', 0);
@@ -78,30 +79,36 @@ export default class Player {
     }
 
     takeDamage(amount) {
+        if(!this.alive) return;
         this.hp -= amount;
-        this.updateHpBar();
         
-        if(this.hp < 0) {
-            this.hp = 0;
-            // needs to die
-        }
-    }
-/*
-    takeDamage(amount) {
-        if(!this.alive) {
-            return;
-        }
-        this.hp -= amount;
-        this.updateHpBar();
-
         if(this.hp <= 0) {
+            this.hp = 0;
             this.die();
         }
+        this.updateHpBar();
     }
-*/
+
     updateHpBar() {
         const pct = this.hp / this.maxHp;
         this.hpBar.scaleX = pct;
+    }
+
+    die() {
+        this.alive = false;
+        this.hpBar.setVisible(false);
+        this.hpBarBg.setVisible(false);
+        this.sprite.setTexture('player-dead', 3);
+    }
+
+    respawn(x, y) {
+        this.alive = true;
+        this.hp = this.maxHp;
+        this.sprite.x = x;
+        this.sprite.y = y;
+        this.hpBar.setVisible(true);
+        this.hpBarBg.setVisible(true);
+        this.updateHpBar();
     }
 
     // Inventory

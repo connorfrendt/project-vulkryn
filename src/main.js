@@ -23,6 +23,10 @@ class GameScene extends Phaser.Scene {
             frameWidth: 100,
             frameHeight: 100,
         });
+        this.load.spritesheet('player-dead', '/assets/Sprites/character-sprites/Soldier/Soldier/Soldier_Death.png', {
+            frameWidth: 100,
+            frameHeight: 100,
+        });
         this.load.spritesheet('enemy', '/assets/Sprites/character-sprites/Orc/Orc/Orc_Idle.png', {
             frameWidth: 100,
             frameHeight: 100,
@@ -43,6 +47,11 @@ class GameScene extends Phaser.Scene {
             left: Phaser.Input.Keyboard.KeyCodes.A,
             right: Phaser.Input.Keyboard.KeyCodes.D,
         });
+        this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+        this.dashActive = false;
+        this.dashTimer = 0;
+        this.dashDirX = 0;
+        this.dashDirY = 0;
 
         // Item Spawns in Overworld
         this.worldItem = itemSpawns.map(spawn => {
@@ -81,25 +90,6 @@ class GameScene extends Phaser.Scene {
             this.backpack.refresh();
         }
 
-        // Spawn Orc enemy
-        // this.orc = new Enemy(this, 300, 200, {
-        //     name: 'Cave Orc',
-        //     hp: 30,
-        //     maxHp: 30,
-        //     lootTable: {
-        //         guaranteed: [
-                    
-        //         ],
-        //         chance: [
-        //             { itemId: 'shoulderPad', chance: 1.0 }
-        //         ],
-        //     }
-        // });
-
-        // this.orc.onLoot = (loot) => {
-        //     this.lootWindow.open(loot, this.orc);
-        // }
-
         this.enemies = [];
 
         this.spawnEnemy(300, 200, {
@@ -124,7 +114,7 @@ class GameScene extends Phaser.Scene {
         return enemy;
     }
 
-    // Movement (so far...)
+    // Movement
     update() {
         // Player Health Bar
         this.player.hpBarBg.x = this.player.sprite.x;
@@ -132,36 +122,45 @@ class GameScene extends Phaser.Scene {
         this.player.hpBar.x = this.player.sprite.x - 20;
         this.player.hpBar.y = this.player.sprite.y - 28;
         
-        // if(this.orc) {
-        //     // Enemy Health Bar
-        //     this.orc.hpBarBg.x = this.orc.sprite.x;
-        //     this.orc.hpBarBg.y = this.orc.sprite.y - 28;
-        //     this.orc.hpBar.x = this.orc.sprite.x - 20;
-        //     this.orc.hpBar.y = this.orc.sprite.y - 28;
+        // Capture movement direction
+        let dirX = 0;
+        let dirY = 0;
+        if(this.cursors.left.isDown || this.wasd.left.isDown) dirX = -1;
+        if(this.cursors.right.isDown || this.wasd.right.isDown) dirX = 1;
+        if(this.cursors.up.isDown || this.wasd.up.isDown) dirY = -1;
+        if(this.cursors.down.isDown || this.wasd.down.isDown) dirY = 1;
 
-        //     // Enemy Name
-        //     this.orc.nameText.x = this.orc.sprite.x - this.orc.nameText.width / 2;
-        //     this.orc.nameText.y = this.orc.sprite.y - 40;
-        // }
-
-        if(this.cursors.left.isDown || this.wasd.left.isDown) {
-            this.player.sprite.x -= this.player.speed;
+        // Dash Start
+        if(Phaser.Input.Keyboard.JustDown(this.spaceKey) && !this.dashActive && (dirX != 0 || dirY !== 0)) {
+            this.dashActive = true;
+            this.dashTimer = 150;
+            this.dashDirX = dirX;
+            this.dashDirY = dirY;
+            this.player.speed = 8;
         }
 
-        if(this.cursors.right.isDown || this.wasd.right.isDown) {
-            this.player.sprite.x += this.player.speed;
+        // Dash Tick
+        if(this.dashActive) {
+            this.dashTimer -= this.game.loop.delta;
+            if(this.dashTimer <= 0) {
+                this.dashActive = false;
+                this.player.speed = 2;
+            }
         }
 
-        if(this.cursors.up.isDown || this.wasd.up.isDown) {
-            this.player.sprite.y -= this.player.speed;
-        }
-
-        if(this.cursors.down.isDown || this.wasd.down.isDown) {
-            this.player.sprite.y += this.player.speed;
-        }
+        // Move
+        const moveX = this.dashActive ? this.dashDirX : dirX;
+        const moveY = this.dashActive ? this.dashDirY : dirY;
+        this.player.sprite.x += moveX * this.player.speed;
+        this.player.sprite.y += moveY * this.player.speed;
 
         // Enemy Visuals
         this.enemies.forEach(enemy => enemy.syncVisuals());
+
+        if(!this.player.alive) {
+            this.player.speed = 0;
+            return;
+        }
 
         // Attack Key
         if(Phaser.Input.Keyboard.JustDown(this.attackKey)) {
@@ -193,30 +192,6 @@ class GameScene extends Phaser.Scene {
             enemy.moveTowardPlayer(this.player);
             enemy.tryAttack(this.player, this.game.loop.delta);
         });
-
-        // if(Phaser.Input.Keyboard.JustDown(this.attackKey)) {
-        //     if(this.orc && this.orc.alive) {
-        //         const distance = Phaser.Math.Distance.Between(
-        //             this.player.sprite.x, this.player.sprite.y,
-        //             this.orc.sprite.x, this.orc.sprite.y
-        //         );
-
-        //         const attackRange = 60 // Tweak this to taste
-
-        //         if(distance <= attackRange) {
-        //             this.orc.takeDamage(10);
-        //         }
-        //         else {
-        //             console.log('Enemy out of range');
-        //         }
-        //     }
-        // }
-
-        // if(this.orc) {
-        //     this.orc.moveTowardPlayer(this.player);
-        //     this.orc.tryAttack(this.player, this.game.loop.delta);
-        // }
-
 
     }
 }

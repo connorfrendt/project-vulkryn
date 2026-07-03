@@ -9,8 +9,8 @@ export default class Enemy {
         this.lootTable = config.lootTable;
         this.alive = true;
         this.attackCooldown = 0;
-        this.attackInterval = 3000; // ms between attacks (3s)
-        this.attackDamage = config.attackDamage || 10;
+        this.attackInterval = 500; // ms between attacks (3s)
+        this.attackDamage = config.attackDamage || 20;
 
         // Visual
         this.sprite = scene.add.sprite(x, y, 'enemy', 0);
