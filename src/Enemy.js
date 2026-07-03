@@ -1,3 +1,5 @@
+import Phaser from "phaser";
+
 export default class Enemy {
     constructor(scene, x, y, config) {
         this.scene = scene;
@@ -6,6 +8,9 @@ export default class Enemy {
         this.name = config.name;
         this.lootTable = config.lootTable;
         this.alive = true;
+        this.attackCooldown = 0;
+        this.attackInterval = 3000; // ms between attacks (3s)
+        this.attackDamage = config.attackDamage || 10;
 
         // Visual
         this.sprite = scene.add.sprite(x, y, 'enemy', 0);
@@ -24,6 +29,47 @@ export default class Enemy {
             fontSize: '11px',
             fill: '#ffffff',
         });
+    }
+
+    moveTowardPlayer(player) {
+        if(!this.alive) return;
+
+        const dx = player.sprite.x - this.sprite.x;
+        const dy = player.sprite.y - this.sprite.y;
+        const distance = Phaser.Math.Distance.Between(
+            this.sprite.x, this.sprite.y,
+            player.sprite.x, player.sprite.y
+        );
+
+        const chaseRange = 300; // How far away the orc "notices" the player
+        const stopRange = 60; // Don't walk into melee range, just stand there
+        const speed = 40; // Pixels per second, tweak if needed
+
+        if(distance < chaseRange && distance > stopRange) {
+            const angle = Math.atan2(dy, dx);
+            this.sprite.x += Math.cos(angle) * speed * (this.scene.game.loop.delta / 1000);
+            this.sprite.y += Math.sin(angle) * speed * (this.scene.game.loop.delta / 1000);
+        }
+    }
+
+    tryAttack(player, delta) {
+        if(!this.alive) return;
+
+        const distance = Phaser.Math.Distance.Between(
+            this.sprite.x, this.sprite.y,
+            player.sprite.x, player.sprite.y
+        );
+
+        if(distance <= 60) {
+            this.attackCooldown -= delta;
+            if(this.attackCooldown <= 0) {
+                player.takeDamage(this.attackDamage);
+                this.attackCooldown = this.attackInterval;
+            }
+        }
+        else {
+            this.attackCooldown = 0;
+        }
     }
 
     takeDamage(amount) {
@@ -82,6 +128,16 @@ export default class Enemy {
             }
         })
     }
+
+    syncVisuals() {
+        this.hpBarBg.x = this.sprite.x;
+        this.hpBarBg.y = this.sprite.y - 28;
+        this.hpBar.x = this.sprite.x - 20;
+        this.hpBar.y = this.sprite.y - 28;
+        this.nameText.x = this.sprite.x - this.nameText.width / 2;
+        this.nameText.y = this.sprite.y - 40;
+    }
+
 
     destroy() {
         this.sprite.destroy();

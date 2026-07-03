@@ -73,11 +73,7 @@ class GameScene extends Phaser.Scene {
         }
 
         // Basic Attack
-        this.input.keyboard.on('keydown-F', () => {
-            if(this.orc && this.orc.alive) {
-                this.orc.takeDamage(10);
-            }
-        })
+        this.attackKey = this.input.keyboard.addKey('ONE');
 
         this.lootWindow = new LootWindow(this, this.player);
 
@@ -86,27 +82,68 @@ class GameScene extends Phaser.Scene {
         }
 
         // Spawn Orc enemy
-        this.orc = new Enemy(this, 300, 200, {
+        // this.orc = new Enemy(this, 300, 200, {
+        //     name: 'Cave Orc',
+        //     hp: 30,
+        //     maxHp: 30,
+        //     lootTable: {
+        //         guaranteed: [
+                    
+        //         ],
+        //         chance: [
+        //             { itemId: 'shoulderPad', chance: 1.0 }
+        //         ],
+        //     }
+        // });
+
+        // this.orc.onLoot = (loot) => {
+        //     this.lootWindow.open(loot, this.orc);
+        // }
+
+        this.enemies = [];
+
+        this.spawnEnemy(300, 200, {
             name: 'Cave Orc',
             hp: 30,
             maxHp: 30,
             lootTable: {
-                guaranteed: [
-                    
-                ],
+                guaranteed: [],
                 chance: [
-                    { itemId: 'shoulderPad', chance: 1.0 }
+                    { itemId: 'shoulderPad', chance: 0.5 }
                 ],
             }
         });
+    }
 
-        this.orc.onLoot = (loot) => {
-            this.lootWindow.open(loot, this.orc);
-        }
+    spawnEnemy(x, y, config) {
+        const enemy = new Enemy(this, x, y, config);
+        enemy.onLoot = (loot) => {
+            this.lootWindow.open(loot, enemy);
+        };
+        this.enemies.push(enemy);
+        return enemy;
     }
 
     // Movement (so far...)
     update() {
+        // Player Health Bar
+        this.player.hpBarBg.x = this.player.sprite.x;
+        this.player.hpBarBg.y = this.player.sprite.y - 28;
+        this.player.hpBar.x = this.player.sprite.x - 20;
+        this.player.hpBar.y = this.player.sprite.y - 28;
+        
+        // if(this.orc) {
+        //     // Enemy Health Bar
+        //     this.orc.hpBarBg.x = this.orc.sprite.x;
+        //     this.orc.hpBarBg.y = this.orc.sprite.y - 28;
+        //     this.orc.hpBar.x = this.orc.sprite.x - 20;
+        //     this.orc.hpBar.y = this.orc.sprite.y - 28;
+
+        //     // Enemy Name
+        //     this.orc.nameText.x = this.orc.sprite.x - this.orc.nameText.width / 2;
+        //     this.orc.nameText.y = this.orc.sprite.y - 40;
+        // }
+
         if(this.cursors.left.isDown || this.wasd.left.isDown) {
             this.player.sprite.x -= this.player.speed;
         }
@@ -122,6 +159,65 @@ class GameScene extends Phaser.Scene {
         if(this.cursors.down.isDown || this.wasd.down.isDown) {
             this.player.sprite.y += this.player.speed;
         }
+
+        // Enemy Visuals
+        this.enemies.forEach(enemy => enemy.syncVisuals());
+
+        // Attack Key
+        if(Phaser.Input.Keyboard.JustDown(this.attackKey)) {
+            const attackRange = 60;
+            const aliveEnemies = this.enemies.filter(enemy => enemy.alive);
+            const target = aliveEnemies.sort((a, b) =>
+                Phaser.Math.Distance.Between(this.player.sprite.x, this.player.sprite.y, a.sprite.x, a.sprite.y) -
+                Phaser.Math.Distance.Between(this.player.sprite.x, this.player.sprite.y, b.sprite.x, b.sprite.y)
+
+            )[0];
+
+            if(target) {
+                const distance = Phaser.Math.Distance.Between(
+                    this.player.sprite.x, this.player.sprite.y,
+                    target.sprite.x, target.sprite.y
+                );
+
+                if(distance <= attackRange) {
+                    target.takeDamage(10);
+                }
+                else {
+                    console.log('Enemy out of range');
+                }
+            }
+        }
+
+        // Enemy AI
+        this.enemies.forEach(enemy => {
+            enemy.moveTowardPlayer(this.player);
+            enemy.tryAttack(this.player, this.game.loop.delta);
+        });
+
+        // if(Phaser.Input.Keyboard.JustDown(this.attackKey)) {
+        //     if(this.orc && this.orc.alive) {
+        //         const distance = Phaser.Math.Distance.Between(
+        //             this.player.sprite.x, this.player.sprite.y,
+        //             this.orc.sprite.x, this.orc.sprite.y
+        //         );
+
+        //         const attackRange = 60 // Tweak this to taste
+
+        //         if(distance <= attackRange) {
+        //             this.orc.takeDamage(10);
+        //         }
+        //         else {
+        //             console.log('Enemy out of range');
+        //         }
+        //     }
+        // }
+
+        // if(this.orc) {
+        //     this.orc.moveTowardPlayer(this.player);
+        //     this.orc.tryAttack(this.player, this.game.loop.delta);
+        // }
+
+
     }
 }
 

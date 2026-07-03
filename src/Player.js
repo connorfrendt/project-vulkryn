@@ -53,6 +53,9 @@ export default class Player {
 
         // Visual
         this.sprite = scene.add.sprite(x, y, 'player', 0);
+        this.hpBarBg = scene.add.rectangle(x, y - 28, 40, 6, 0x440000);
+        this.hpBar = scene.add.rectangle(x - 20, y - 28, 40, 6, 0x00ff00);
+        this.hpBar.setOrigin(0, 0.5);
     }
 
     // Stats
@@ -72,6 +75,33 @@ export default class Player {
         return Object.values(this.equipment)
             .filter(item => item !== null)
             .reduce((total, item) => total + (item.stats?.intellect || 0), 0);
+    }
+
+    takeDamage(amount) {
+        this.hp -= amount;
+        this.updateHpBar();
+        
+        if(this.hp < 0) {
+            this.hp = 0;
+            // needs to die
+        }
+    }
+/*
+    takeDamage(amount) {
+        if(!this.alive) {
+            return;
+        }
+        this.hp -= amount;
+        this.updateHpBar();
+
+        if(this.hp <= 0) {
+            this.die();
+        }
+    }
+*/
+    updateHpBar() {
+        const pct = this.hp / this.maxHp;
+        this.hpBar.scaleX = pct;
     }
 
     // Inventory
