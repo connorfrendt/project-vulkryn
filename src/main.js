@@ -92,6 +92,11 @@ class GameScene extends Phaser.Scene {
 
         this.enemies = [];
 
+        this.playerDeathTimer = 0;
+        this.player.onDeath = () => {
+            this.playerDeathTimer = 1000;
+        }
+
         this.spawnEnemy(300, 200, {
             name: 'Cave Orc',
             hp: 30,
@@ -114,6 +119,28 @@ class GameScene extends Phaser.Scene {
         return enemy;
     }
 
+    doRespawn() {
+        this.enemies.forEach(enemy => enemy.destroy());
+        this.enemies = [];
+
+        this.player.respawn(50, 300);
+        this.player.speed = 2;
+
+        this.spawnEnemy(
+            Phaser.Math.Between(300, 700),
+            Phaser.Math.Between(100, 500),
+            {
+                name: 'Cave Orc',
+                hp: 30,
+                maxHp: 30,
+                lootTable: {
+                    guaranteed: [],
+                    chance: [{ itemId: 'shoulderPad', chance: 0.5 }],
+                }
+            }
+        )
+    }
+
     // Movement
     update() {
         // Player Health Bar
@@ -121,7 +148,18 @@ class GameScene extends Phaser.Scene {
         this.player.hpBarBg.y = this.player.sprite.y - 28;
         this.player.hpBar.x = this.player.sprite.x - 20;
         this.player.hpBar.y = this.player.sprite.y - 28;
-        
+
+        // Enemy Visuals
+        this.enemies.forEach(enemy => enemy.syncVisuals());
+
+        // Alive Check / Death sequence - freeze everything, respawn after 1s
+        if(!this.player.alive) {
+            this.playerDeathTimer -= this.game.loop.delta;
+            if(this.playerDeathTimer <=0) {
+                this.doRespawn();
+            }
+        }
+
         // Capture movement direction
         let dirX = 0;
         let dirY = 0;
@@ -148,19 +186,11 @@ class GameScene extends Phaser.Scene {
             }
         }
 
-        // Move
+        // Movement
         const moveX = this.dashActive ? this.dashDirX : dirX;
         const moveY = this.dashActive ? this.dashDirY : dirY;
         this.player.sprite.x += moveX * this.player.speed;
         this.player.sprite.y += moveY * this.player.speed;
-
-        // Enemy Visuals
-        this.enemies.forEach(enemy => enemy.syncVisuals());
-
-        if(!this.player.alive) {
-            this.player.speed = 0;
-            return;
-        }
 
         // Attack Key
         if(Phaser.Input.Keyboard.JustDown(this.attackKey)) {

@@ -99,11 +99,13 @@ export default class Player {
         this.hpBar.setVisible(false);
         this.hpBarBg.setVisible(false);
         this.sprite.setTexture('player-dead', 3);
+        if(this.onDeath) this.onDeath();
     }
 
     respawn(x, y) {
         this.alive = true;
         this.hp = this.maxHp;
+        this.sprite.setTexture('player', 0);
         this.sprite.x = x;
         this.sprite.y = y;
         this.hpBar.setVisible(true);
