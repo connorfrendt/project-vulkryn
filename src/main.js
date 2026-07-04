@@ -63,6 +63,7 @@ class GameScene extends Phaser.Scene {
             left: Phaser.Input.Keyboard.KeyCodes.A,
             right: Phaser.Input.Keyboard.KeyCodes.D,
         });
+
         this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
         this.dashActive = false;
         this.dashTimer = 0;
@@ -98,7 +99,15 @@ class GameScene extends Phaser.Scene {
         }
 
         // Basic Attack
-        this.attackKey = this.input.keyboard.addKey('ONE');
+        this.attackRequested = false;
+        this.attackCooldown = 0;
+        this.attackCooldownDuration = 500; // ms
+
+        this.input.on('pointerdown', (pointer) => {
+            if(pointer.leftButtonDown()) {
+                this.attackRequested = true;
+            }
+        })
 
         this.lootWindow = new LootWindow(this, this.player);
 
@@ -111,10 +120,17 @@ class GameScene extends Phaser.Scene {
         this.anims.create({ key: 'player-idle', frames: this.anims.generateFrameNumbers('player-idle', { start: 0, end: 5 }), frameRate: 8, repeat: -1 });
         this.anims.create({ key: 'player-walk', frames: this.anims.generateFrameNumbers('player-walk', { start: 0, end: 7 }), frameRate: 10, repeat: -1 });
         this.anims.create({ key: 'player-attack', frames: this.anims.generateFrameNumbers('player-attack', { start: 0, end: 5 }), frameRate: 12, repeat: 0 });
+        this.anims.create({ key: 'player-dead', frames: this.anims.generateFrameNames('player-dead', {start: 0, end: 3 }), frameRate: 12, repeat: 0 })
         this.anims.create({ key: 'enemy-idle', frames: this.anims.generateFrameNumbers('enemy-idle', { start: 0, end: 5 }), frameRate: 8, repeat: -1 });
         this.anims.create({ key: 'enemy-walk', frames: this.anims.generateFrameNumbers('enemy-walk', { start: 0, end: 7 }), frameRate: 10, repeat: -1 });
         this.anims.create({ key: 'enemy-attack', frames: this.anims.generateFrameNumbers('enemy-attack', { start: 0, end: 5 }), frameRate: 12, repeat: 0 });
         this.player.sprite.play('player-idle');
+
+        this.player.sprite.on('animationcomplete-player-attack', () => {
+            if(this.player.alive) {
+                this.player.sprite.play('player-idle', true);
+            }
+        });
 
         this.playerDeathTimer = 0;
         this.player.onDeath = () => {
@@ -165,13 +181,13 @@ class GameScene extends Phaser.Scene {
         )
     }
 
-    // Movement
     update() {
         // Player Health Bar
         this.player.hpBarBg.x = this.player.sprite.x;
         this.player.hpBarBg.y = this.player.sprite.y - 28;
         this.player.hpBar.x = this.player.sprite.x - 20;
         this.player.hpBar.y = this.player.sprite.y - 28;
+        this.player.updateFlicker(this.game.loop.delta);
 
         // Enemy Visuals
         this.enemies.forEach(enemy => enemy.syncVisuals());
@@ -201,6 +217,7 @@ class GameScene extends Phaser.Scene {
                 this.dashDirX = dirX;
                 this.dashDirY = dirY;
                 this.player.speed = 8;
+                this.player.invulnerable = true;
             }
     
             // Dash Tick
@@ -209,6 +226,7 @@ class GameScene extends Phaser.Scene {
                 if(this.dashTimer <= 0) {
                     this.dashActive = false;
                     this.player.speed = 2;
+                    this.player.invulnerable = false;
                 }
             }
     
@@ -227,8 +245,15 @@ class GameScene extends Phaser.Scene {
                 }
             }
     
-            // Attack Key
-            if(Phaser.Input.Keyboard.JustDown(this.attackKey)) {
+            // Attack Cooldown Tick
+            if(this.attackCooldown > 0) {
+                this.attackCooldown -= this.game.loop.delta;
+            }
+
+            // Attack
+            if(this.attackRequested && this.attackCooldown <= 0) {
+                this.player.sprite.play('player-attack', false);
+
                 const attackRange = 60;
                 const aliveEnemies = this.enemies.filter(enemy => enemy.alive);
                 const target = aliveEnemies.sort((a, b) =>
@@ -236,7 +261,7 @@ class GameScene extends Phaser.Scene {
                     Phaser.Math.Distance.Between(this.player.sprite.x, this.player.sprite.y, b.sprite.x, b.sprite.y)
     
                 )[0];
-    
+
                 if(target) {
                     const distance = Phaser.Math.Distance.Between(
                         this.player.sprite.x, this.player.sprite.y,
@@ -245,13 +270,14 @@ class GameScene extends Phaser.Scene {
     
                     if(distance <= attackRange) {
                         target.takeDamage(10);
-                        this.player.sprite.play('player-attack', false);
-                    }
-                    else {
-                        console.log('Enemy out of range');
+                        
                     }
                 }
+
+                this.attackCooldown = this.attackCooldownDuration;
             }
+
+            this.attackRequested = false; // Consume the click either way, so a click during cooldown doesn't queue up
         }
 
         // Enemy AI
@@ -267,6 +293,7 @@ const config = {
     type: Phaser.AUTO,
     width: 800,
     height: 600,
+    pixelArt: true,
     backgroundColor: '#1a1a2e',
     scene: GameScene,
 }

@@ -70,7 +70,6 @@ export default class Enemy {
         );
 
         if(distance <= 60) {
-            console.log('distance is less than 60');
             this.attackCooldown -= delta;
             if(this.attackCooldown <= 0) {
                 player.takeDamage(this.attackDamage);

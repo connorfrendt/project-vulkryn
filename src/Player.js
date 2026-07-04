@@ -2,6 +2,8 @@ export default class Player {
     constructor(scene, x, y) {
         this.scene = scene;
         this.alive = true;
+        this.invulnerable = false;
+        this.flickerTimer = 0;
 
         // Core Stats
         this.level = 1;
@@ -54,7 +56,7 @@ export default class Player {
 
         // Visual
         this.sprite = scene.add.sprite(x, y, 'player-idle', 0);
-        this.sprite.setScale(2);
+        this.sprite.setScale(4);
         this.hpBarBg = scene.add.rectangle(x, y - 28, 40, 6, 0x440000);
         this.hpBar = scene.add.rectangle(x - 20, y - 28, 40, 6, 0x00ff00);
         this.hpBar.setOrigin(0, 0.5);
@@ -81,6 +83,7 @@ export default class Player {
 
     takeDamage(amount) {
         if(!this.alive) return;
+        if(this.invulnerable) return;
         this.hp -= amount;
         
         if(this.hp <= 0) {
@@ -97,22 +100,37 @@ export default class Player {
 
     die() {
         this.alive = false;
+        this.sprite.stop();
         this.hpBar.setVisible(false);
         this.hpBarBg.setVisible(false);
-        this.sprite.setTexture('player-dead', 3);
+        this.sprite.play('player-dead');
+        // this.sprite.setTexture('player-dead', 3);
         if(this.onDeath) this.onDeath();
     }
 
     respawn(x, y) {
         this.alive = true;
         this.hp = this.maxHp;
-        this.sprite.setTexture('player-idle', 0);
+        // this.sprite.setTexture('player-idle', 0);
         this.sprite.play('player-idle');
         this.sprite.x = x;
         this.sprite.y = y;
         this.hpBar.setVisible(true);
         this.hpBarBg.setVisible(true);
         this.updateHpBar();
+    }
+
+    updateFlicker(delta) {
+        if(!this.invulnerable) {
+            this.sprite.setAlpha(1); // fully visible when not dashing
+            return;
+        }
+
+        this.flickerTimer -= delta;
+        if(this.flickerTimer <= 0) {
+            this.flickerTimer = 50; // flip every 50ms - tweak to taste
+            this.sprite.setAlpha(this.sprite.alpha === 1 ? 0.4 : 1);
+        }
     }
 
     // Inventory
