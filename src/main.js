@@ -69,6 +69,8 @@ class GameScene extends Phaser.Scene {
         this.dashTimer = 0;
         this.dashDirX = 0;
         this.dashDirY = 0;
+        this.dashCooldown = 0;
+        this.dashCooldownDuration = 250;
 
         // Item Spawns in Overworld
         this.worldItem = itemSpawns.map(spawn => {
@@ -211,9 +213,9 @@ class GameScene extends Phaser.Scene {
             if(this.cursors.down.isDown || this.wasd.down.isDown) dirY = 1;
     
             // Dash Start
-            if(Phaser.Input.Keyboard.JustDown(this.spaceKey) && !this.dashActive && (dirX != 0 || dirY !== 0)) {
+            if(Phaser.Input.Keyboard.JustDown(this.spaceKey) && !this.dashActive && this.dashCooldown <=0 && (dirX != 0 || dirY !== 0)) {
                 this.dashActive = true;
-                this.dashTimer = 150;
+                this.dashTimer = 150; // how long the dash is
                 this.dashDirX = dirX;
                 this.dashDirY = dirY;
                 this.player.speed = 8;
@@ -227,7 +229,13 @@ class GameScene extends Phaser.Scene {
                     this.dashActive = false;
                     this.player.speed = 2;
                     this.player.invulnerable = false;
+                    this.dashCooldown = this.dashCooldownDuration;
                 }
+            }
+
+            // Dash Cooldown Tick
+            if(this.dashCooldown > 0) {
+                this.dashCooldown -= this.game.loop.delta;
             }
     
             // Movement
@@ -291,8 +299,8 @@ class GameScene extends Phaser.Scene {
 
 const config = {
     type: Phaser.AUTO,
-    width: 800,
-    height: 600,
+    width: 1400,
+    height: 800,
     pixelArt: true,
     backgroundColor: '#1a1a2e',
     scene: GameScene,
