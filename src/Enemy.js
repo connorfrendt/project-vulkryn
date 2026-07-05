@@ -11,6 +11,13 @@ export default class Enemy {
         this.attackCooldown = 0;
         this.attackInterval = 3000; // ms between attacks (3s)
         this.attackDamage = config.attackDamage || 20;
+
+        //Knockback
+        this.knockbackActive = false;
+        this.knockbackTimer = 0;
+        this.knockbackDirX = 0;
+        this.knockbackDirY = 0;
+        this.knockbackSpeed = 300; // pixels per second, tune to taste
         
         // HP bar background
         this.hpBarBg = scene.add.rectangle(x, y - 28, 40, 6, 0x440000);
@@ -33,6 +40,7 @@ export default class Enemy {
 
     moveTowardPlayer(player) {
         if(!this.alive) return;
+        if(this.knockbackActive) return;
 
         const dx = player.sprite.x - this.sprite.x;
         const dy = player.sprite.y - this.sprite.y;
@@ -85,7 +93,7 @@ export default class Enemy {
         }
     }
 
-    takeDamage(amount) {
+    takeDamage(amount, sourceX, sourceY) {
         if(!this.alive) {
             return;
         }
@@ -94,6 +102,33 @@ export default class Enemy {
 
         if(this.hp <= 0) {
             this.die();
+            return;
+        }
+
+        // Knockback away from the attacker
+        if(sourceX !== undefined && sourceY !== undefined) {
+            const dx = this.sprite.x - sourceX;
+            const dy = this.sprite.y - sourceY;
+            const angle = Math.atan2(dy, dx);
+            this.knockbackDirX = Math.cos(angle);
+            this.knockbackDirY = Math.sin(angle);
+            this.knockbackActive = true;
+            this.knockbackTimer = 250; // ms, tune to taste
+        }
+    }
+
+    updateKnockback(delta) {
+        if(!this.knockbackActive) {
+            return;
+        }
+        console.log(delta, this.knockbackDirX, this.knockbackDirY);
+
+        this.sprite.x += this.knockbackDirX * this.knockbackSpeed * (delta / 1000);
+        this.sprite.y += this.knockbackDirY * this.knockbackSpeed * (delta / 1000);
+        
+        this.knockbackTimer -= delta;
+        if(this.knockbackTimer <= 0) {
+            this.knockbackActive = false;
         }
     }
 
@@ -123,7 +158,8 @@ export default class Enemy {
     die() {
         this.alive = false;
         this.looted = false;
-        this.sprite.setTexture('enemy-dead', 3);
+        this.sprite.stop();
+        this.sprite.play('enemy-dead');
         this.nameText.setText(`${this.name } (Dead)`) // placeholder for now
         this.hpBar.setVisible(false);
 

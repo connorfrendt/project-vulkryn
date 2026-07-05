@@ -126,6 +126,7 @@ class GameScene extends Phaser.Scene {
         this.anims.create({ key: 'enemy-idle', frames: this.anims.generateFrameNumbers('enemy-idle', { start: 0, end: 5 }), frameRate: 8, repeat: -1 });
         this.anims.create({ key: 'enemy-walk', frames: this.anims.generateFrameNumbers('enemy-walk', { start: 0, end: 7 }), frameRate: 10, repeat: -1 });
         this.anims.create({ key: 'enemy-attack', frames: this.anims.generateFrameNumbers('enemy-attack', { start: 0, end: 5 }), frameRate: 12, repeat: 0 });
+        this.anims.create({ key: 'enemy-dead', frames: this.anims.generateFrameNumbers('enemy-dead', { start: 0, end: 3 }), frameRate: 12, repeat: 0 });
         this.player.sprite.play('player-idle');
 
         this.player.sprite.on('animationcomplete-player-attack', () => {
@@ -197,7 +198,7 @@ class GameScene extends Phaser.Scene {
         // Alive Check / Death sequence - freeze everything, respawn after 1s
         if(!this.player.alive) {
             this.playerDeathTimer -= this.game.loop.delta;
-            if(this.playerDeathTimer <=0) {
+            if(this.playerDeathTimer <= 0) {
                 this.doRespawn();
             }
         }
@@ -277,8 +278,7 @@ class GameScene extends Phaser.Scene {
                     );
     
                     if(distance <= attackRange) {
-                        target.takeDamage(10);
-                        
+                        target.takeDamage(10, this.player.sprite.x, this.player.sprite.y);
                     }
                 }
 
@@ -290,6 +290,7 @@ class GameScene extends Phaser.Scene {
 
         // Enemy AI
         this.enemies.forEach(enemy => {
+            enemy.updateKnockback(this.game.loop.delta);
             enemy.moveTowardPlayer(this.player);
             enemy.tryAttack(this.player, this.game.loop.delta);
         });

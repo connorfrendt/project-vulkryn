@@ -104,7 +104,6 @@ export default class Player {
         this.hpBar.setVisible(false);
         this.hpBarBg.setVisible(false);
         this.sprite.play('player-dead');
-        // this.sprite.setTexture('player-dead', 3);
         if(this.onDeath) this.onDeath();
     }
 
