@@ -56,7 +56,7 @@ export default class Player {
 
         // Visual
         this.sprite = scene.add.sprite(x, y, 'player-idle', 0);
-        this.sprite.setScale(4);
+        // this.sprite.setScale(4);
         this.hpBarBg = scene.add.rectangle(x, y - 28, 40, 6, 0x440000);
         this.hpBar = scene.add.rectangle(x - 20, y - 28, 40, 6, 0x00ff00);
         this.hpBar.setOrigin(0, 0.5);
@@ -110,7 +110,6 @@ export default class Player {
     respawn(x, y) {
         this.alive = true;
         this.hp = this.maxHp;
-        // this.sprite.setTexture('player-idle', 0);
         this.sprite.play('player-idle');
         this.sprite.x = x;
         this.sprite.y = y;

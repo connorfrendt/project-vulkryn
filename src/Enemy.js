@@ -121,7 +121,6 @@ export default class Enemy {
         if(!this.knockbackActive) {
             return;
         }
-        console.log(delta, this.knockbackDirX, this.knockbackDirY);
 
         this.sprite.x += this.knockbackDirX * this.knockbackSpeed * (delta / 1000);
         this.sprite.y += this.knockbackDirY * this.knockbackSpeed * (delta / 1000);

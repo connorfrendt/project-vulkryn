@@ -19,13 +19,13 @@ class GameScene extends Phaser.Scene {
     }
 
     preload() {
-        this.load.spritesheet('player-idle', '/assets/Sprites/character-sprites/Soldier/Soldier/Soldier_Idle.png', {
-            frameWidth: 100,
-            frameHeight: 100,
+        this.load.spritesheet('player-idle', '/assets/Sprites/character-sprites/Mage/mage-down-idle.png', {
+            frameWidth: 96,
+            frameHeight: 96,
         });
-        this.load.spritesheet('player-walk', '/assets/Sprites/character-sprites/Soldier/Soldier/Soldier_Walk.png', {
-            frameWidth: 100,
-            frameHeight: 100,
+        this.load.spritesheet('player-walk', '/assets/Sprites/character-sprites/Mage/mage-walk-down.png', {
+            frameWidth: 96,
+            frameHeight: 96,
         });
         this.load.spritesheet('player-attack', '/assets/Sprites/character-sprites/Soldier/Soldier/Soldier_Attack01.png', {
             frameWidth: 100,
@@ -51,9 +51,15 @@ class GameScene extends Phaser.Scene {
             frameWidth: 100,
             frameHeight: 100,
         });
+        this.load.image('tiles', '/assets/tilemaps/tiles.png');
+        this.load.tilemapTiledJSON('test-room', '/assets/tilemaps/test-room-1.json');
     }
 
     create() {
+        this.map = this.make.tilemap({ key: 'test-room' });
+        const tileset = this.map.addTilesetImage('tiles', 'tiles');
+        const groundLayer = this.map.createLayer('Tile Layer 1', tileset, 0, 0);
+
         this.input.mouse.disableContextMenu();
         this.player = new Player(this, 700, 300);
         this.cursors = this.input.keyboard.createCursorKeys();
@@ -119,8 +125,8 @@ class GameScene extends Phaser.Scene {
 
         this.enemies = [];
 
-        this.anims.create({ key: 'player-idle', frames: this.anims.generateFrameNumbers('player-idle', { start: 0, end: 5 }), frameRate: 8, repeat: -1 });
-        this.anims.create({ key: 'player-walk', frames: this.anims.generateFrameNumbers('player-walk', { start: 0, end: 7 }), frameRate: 10, repeat: -1 });
+        this.anims.create({ key: 'player-idle', frames: this.anims.generateFrameNumbers('player-idle', { start: 0, end: 3 }), frameRate: 2, repeat: -1 });
+        this.anims.create({ key: 'player-walk', frames: this.anims.generateFrameNumbers('player-walk', { start: 0, end: 7 }), frameRate: 8, repeat: -1 });
         this.anims.create({ key: 'player-attack', frames: this.anims.generateFrameNumbers('player-attack', { start: 0, end: 5 }), frameRate: 12, repeat: 0 });
         this.anims.create({ key: 'player-dead', frames: this.anims.generateFrameNames('player-dead', {start: 0, end: 3 }), frameRate: 12, repeat: 0 })
         this.anims.create({ key: 'enemy-idle', frames: this.anims.generateFrameNumbers('enemy-idle', { start: 0, end: 5 }), frameRate: 8, repeat: -1 });
@@ -185,6 +191,16 @@ class GameScene extends Phaser.Scene {
     }
 
     update() {
+        this.cameras.main.startFollow(this.player.sprite, true, 0.1, 0.1);
+        this.cameras.main.setZoom(2);
+        // this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+        // this.cameras.main.setBounds(0, 0, config.width, config.height);
+
+        // TODO: FOR USE LATER
+        // this.cameras.main.shake(200, 0.01); // duration ms, intensity
+        // this.cameras.main.flash(200, 255, 0, 0); // red flash, e.g. on player hit
+        // this.cameras.main.fade(500, 0, 0, 0); // fade to black, e.g. on death/respawn
+
         // Player Health Bar
         this.player.hpBarBg.x = this.player.sprite.x;
         this.player.hpBarBg.y = this.player.sprite.y - 28;
@@ -244,6 +260,12 @@ class GameScene extends Phaser.Scene {
             const moveY = this.dashActive ? this.dashDirY : dirY;
             this.player.sprite.x += moveX * this.player.speed;
             this.player.sprite.y += moveY * this.player.speed;
+
+            // const halfWidth = this.player.sprite.displayWidth / 2;
+            // const halfHeight = this.player.sprite.displayHeight / 2;
+
+            this.player.sprite.x = Phaser.Math.Clamp(this.player.sprite.x, 0, this.map.widthInPixels);
+            this.player.sprite.y = Phaser.Math.Clamp(this.player.sprite.y, 0, this.map.heightInPixels);
     
             if(this.player.sprite.anims.getName() !== 'player-attack') {
                 if(moveX !==0 || moveY !== 0) {
@@ -300,7 +322,7 @@ class GameScene extends Phaser.Scene {
 
 const config = {
     type: Phaser.AUTO,
-    width: 1400,
+    width: 1200,
     height: 800,
     pixelArt: true,
     backgroundColor: '#1a1a2e',
