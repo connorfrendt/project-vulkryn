@@ -13,6 +13,9 @@ import Backpack from './Backpack.js';
 import Enemy from './Enemy.js';
 import LootWindow from './LootWindow.js';
 
+import Projectile from './Projectile.js';
+import { projectileData } from './projectiles/projectileData.js';
+
 class GameScene extends Phaser.Scene {
     constructor() {
         super({ key: 'GameScene' });
@@ -50,6 +53,10 @@ class GameScene extends Phaser.Scene {
         this.load.spritesheet('enemy-dead', '/assets/Sprites/character-sprites/Orc/Orc/Orc_Death.png', {
             frameWidth: 100,
             frameHeight: 100,
+        });
+        this.load.spritesheet('fireball', '/assets/Sprites/projectiles/fireball.png', {
+            frameWidth: 24,
+            frameHeight: 24,
         });
         this.load.image('tiles', '/assets/tilemaps/tiles.png');
         this.load.tilemapTiledJSON('test-room', '/assets/tilemaps/test-room-1.json');
@@ -124,15 +131,17 @@ class GameScene extends Phaser.Scene {
         }
 
         this.enemies = [];
+        this.projectiles = [];
 
-        this.anims.create({ key: 'player-idle', frames: this.anims.generateFrameNumbers('player-idle', { start: 0, end: 3 }), frameRate: 2, repeat: -1 });
-        this.anims.create({ key: 'player-walk', frames: this.anims.generateFrameNumbers('player-walk', { start: 0, end: 7 }), frameRate: 8, repeat: -1 });
-        this.anims.create({ key: 'player-attack', frames: this.anims.generateFrameNumbers('player-attack', { start: 0, end: 5 }), frameRate: 12, repeat: 0 });
-        this.anims.create({ key: 'player-dead', frames: this.anims.generateFrameNames('player-dead', {start: 0, end: 3 }), frameRate: 12, repeat: 0 })
-        this.anims.create({ key: 'enemy-idle', frames: this.anims.generateFrameNumbers('enemy-idle', { start: 0, end: 5 }), frameRate: 8, repeat: -1 });
-        this.anims.create({ key: 'enemy-walk', frames: this.anims.generateFrameNumbers('enemy-walk', { start: 0, end: 7 }), frameRate: 10, repeat: -1 });
-        this.anims.create({ key: 'enemy-attack', frames: this.anims.generateFrameNumbers('enemy-attack', { start: 0, end: 5 }), frameRate: 12, repeat: 0 });
-        this.anims.create({ key: 'enemy-dead', frames: this.anims.generateFrameNumbers('enemy-dead', { start: 0, end: 3 }), frameRate: 12, repeat: 0 });
+        this.anims.create({ key: 'player-idle',    frames: this.anims.generateFrameNumbers('player-idle', { start: 0, end: 3 }), frameRate: 2, repeat: -1 });
+        this.anims.create({ key: 'player-walk',    frames: this.anims.generateFrameNumbers('player-walk', { start: 0, end: 7 }), frameRate: 8, repeat: -1 });
+        this.anims.create({ key: 'player-attack',  frames: this.anims.generateFrameNumbers('player-attack', { start: 0, end: 5 }), frameRate: 12, repeat: 0 });
+        this.anims.create({ key: 'player-dead',    frames: this.anims.generateFrameNumbers('player-dead', {start: 0, end: 3 }), frameRate: 12, repeat: 0 })
+        this.anims.create({ key: 'enemy-idle',     frames: this.anims.generateFrameNumbers('enemy-idle', { start: 0, end: 5 }), frameRate: 8, repeat: -1 });
+        this.anims.create({ key: 'enemy-walk',     frames: this.anims.generateFrameNumbers('enemy-walk', { start: 0, end: 7 }), frameRate: 10, repeat: -1 });
+        this.anims.create({ key: 'enemy-attack',   frames: this.anims.generateFrameNumbers('enemy-attack', { start: 0, end: 5 }), frameRate: 12, repeat: 0 });
+        this.anims.create({ key: 'enemy-dead',     frames: this.anims.generateFrameNumbers('enemy-dead', { start: 0, end: 3 }), frameRate: 12, repeat: 0 });
+        this.anims.create({ key: 'fireball-fly',   frames: this.anims.generateFrameNumbers('fireball', { start: 0, end: 3 }), frameRate: 12, repeat: -1 });
         this.player.sprite.play('player-idle');
 
         this.player.sprite.on('animationcomplete-player-attack', () => {
@@ -157,6 +166,17 @@ class GameScene extends Phaser.Scene {
                 ],
             }
         });
+
+        this.input.on('pointerdown', (pointer) => {
+            if(pointer.rightButtonDown()) {
+                const angle = Phaser.Math.Angle.Between(
+                    this.player.sprite.x, this.player.sprite.y,
+                    pointer.worldX, pointer.worldY
+                );
+                const fireball = new Projectile(this, this.player.sprite.x, this.player.sprite.y, angle, projectileData.fireball);
+                this.projectiles.push(fireball);
+            }
+        })
     }
 
     spawnEnemy(x, y, config) {
@@ -308,6 +328,9 @@ class GameScene extends Phaser.Scene {
             }
 
             this.attackRequested = false; // Consume the click either way, so a click during cooldown doesn't queue up
+            
+            this.projectiles.forEach(projectile => projectile.update(this.game.loop.delta, this.enemies));
+            this.projectiles = this.projectiles.filter(projectile => projectile.alive);
         }
 
         // Enemy AI
