@@ -9,7 +9,6 @@ export default class CharacterSheet {
         this.player = player;
         this.visible = false;
         this.container = scene.add.container(0, 0);
-        this.container.setScrollFactor(0);
         this.container.setVisible(false);
         
         scene.events.once('create', () => this.build());

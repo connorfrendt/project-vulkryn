@@ -9,7 +9,6 @@ export default class Backpack {
         this.visible = false;
         this.container = scene.add.container(0, 0);
         this.backpackOpen = false;
-        // this.container.setScrollFactor(0);
         this.container.setVisible(false);
         scene.events.once('create', () => this.build());
     }
@@ -45,25 +44,19 @@ export default class Backpack {
             const box = this.scene.add.rectangle(x, y, 40, 40, 0x222223);
             box.setStrokeStyle(1, 0x8888ff);
             box.setInteractive();
-            console.log(box.input);
 
             const itemText = this.scene.add.text(x - 18, y - 8, '', {
                 fontSize: '11px',
                 fill: '#ffaa00',
             });
 
-            console.log('before pointer down');
-            
             box.on('pointerdown', (pointer) => {
-                console.log('do you hit here?');
                 if(!pointer.rightButtonDown()) {
                     return;
                 }
                 else {
-                    console.log('equipped?');
                     const item = this.player.inventory[i];
                     if(item) {
-                        console.log('asdfasdf');
                         this.player.removeFromInventory(item);
                         this.player.equipment[item.slot] = item;
                         this.refresh();

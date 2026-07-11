@@ -66,21 +66,20 @@ class GameScene extends Phaser.Scene {
         this.map = this.make.tilemap({ key: 'test-room' });
         const tileset = this.map.addTilesetImage('tiles', 'tiles');
         const groundLayer = this.map.createLayer('Tile Layer 1', tileset, 0, 0);
-        // groundLayer.setScale(2);
-        // this.worldContainer = this.add.container(0, 0);
-        // this.uiContianer = this.add.container(0, 0);
 
-        // this.uiCamera = this.cameras.add(0, 0, this.scale.width, this.scale.height);
-        // this.uiCamera.setScroll(0, 0);
-        // this.uiCamera.setZoom(1); // never touched, ever
-
-        // this.cameras.main.ignore(this.uiContianer);
-        // this.uiCamera.ignore(this.worldContainer);
+        this.worldContainer = this.add.container(0, 0);
+        this.worldContainer.add(groundLayer);
 
         this.input.mouse.disableContextMenu();
         this.player = new Player(this, 700, 300);
 
-        // this.worldContainer.add(this.player.sprite);
+        // Main camera - follows player
+        this.cameras.main.startFollow(this.player.sprite, true, 0.1, 0.1);
+        this.cameras.main.setZoom(1.5);
+
+        this.worldContainer.add(this.player.sprite);
+        this.worldContainer.add(this.player.hpBarBg);
+        this.worldContainer.add(this.player.hpBar);
         
         this.cursors = this.input.keyboard.createCursorKeys();
         this.wasd = this.input.keyboard.addKeys({
@@ -101,14 +100,15 @@ class GameScene extends Phaser.Scene {
         // Item Spawns in Overworld
         this.worldItem = itemSpawns.map(spawn => {
             const worldItem = new WorldItem(this, createItem(spawn.itemId), spawn.x, spawn.y);
-            
+            this.worldContainer.add(worldItem.sprite);
+
             worldItem.onPickup((item) => {
                 this.player.addToInventory(item);
                 this.backpack.refresh();
             });
             
             return worldItem;
-        })
+        });
 
         this.characterSheet = new CharacterSheet(this, this.player);
         this.backpack = new Backpack(this, this.player);
@@ -182,10 +182,9 @@ class GameScene extends Phaser.Scene {
 
         this.input.on('pointerdown', (pointer) => {
             const backpackBounds = this.backpack.container.getBounds();
-            console.log(backpackBounds);
+            
             if(pointer.rightButtonDown()) {
                 if(Phaser.Geom.Rectangle.Contains(backpackBounds, pointer.x, pointer.y)) {
-                    console.log('returned');
                     return; // If pointer is over backpack, don't fire projectile
                 }
                 const angle = Phaser.Math.Angle.Between(
@@ -193,13 +192,22 @@ class GameScene extends Phaser.Scene {
                     pointer.worldX, pointer.worldY
                 );
                 const fireball = new Projectile(this, this.player.sprite.x, this.player.sprite.y, angle, projectileData.fireball);
+                this.worldContainer.add(fireball.sprite);
                 this.projectiles.push(fireball);
             }
         });
+
+        this.uiCamera = this.cameras.add(0, 0, this.scale.width, this.scale.height);
+        this.uiCamera.setScroll(0, 0);
+        this.uiCamera.setZoom(1);
+
+        this.cameras.main.ignore([this.characterSheet.container, this.backpack.container, this.lootWindow.container]);
+        this.uiCamera.ignore(this.worldContainer);
     }
 
     spawnEnemy(x, y, config) {
         const enemy = new Enemy(this, x, y, config);
+        this.worldContainer.add([enemy.sprite, enemy.hpBarBg, enemy.hpBar, enemy.nameText]);
         enemy.onLoot = (loot) => {
             this.lootWindow.open(loot, enemy);
         };
@@ -230,8 +238,7 @@ class GameScene extends Phaser.Scene {
     }
 
     update() {
-        // Main camera - follows player
-        this.cameras.main.startFollow(this.player.sprite, true, 0.1, 0.1);
+
 
         // this.cameras.main.setZoom(1.5);
         // this.worldContainer.setScale(2);
