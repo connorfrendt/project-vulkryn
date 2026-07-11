@@ -77,10 +77,6 @@ class GameScene extends Phaser.Scene {
         this.cameras.main.startFollow(this.player.sprite, true, 0.1, 0.1);
         this.cameras.main.setZoom(1.5);
 
-        this.worldContainer.add(this.player.sprite);
-        this.worldContainer.add(this.player.hpBarBg);
-        this.worldContainer.add(this.player.hpBar);
-        
         this.cursors = this.input.keyboard.createCursorKeys();
         this.wasd = this.input.keyboard.addKeys({
             up: Phaser.Input.Keyboard.KeyCodes.W,
@@ -100,7 +96,6 @@ class GameScene extends Phaser.Scene {
         // Item Spawns in Overworld
         this.worldItem = itemSpawns.map(spawn => {
             const worldItem = new WorldItem(this, createItem(spawn.itemId), spawn.x, spawn.y);
-            this.worldContainer.add(worldItem.sprite);
 
             worldItem.onPickup((item) => {
                 this.player.addToInventory(item);
@@ -192,7 +187,6 @@ class GameScene extends Phaser.Scene {
                     pointer.worldX, pointer.worldY
                 );
                 const fireball = new Projectile(this, this.player.sprite.x, this.player.sprite.y, angle, projectileData.fireball);
-                this.worldContainer.add(fireball.sprite);
                 this.projectiles.push(fireball);
             }
         });
@@ -207,7 +201,6 @@ class GameScene extends Phaser.Scene {
 
     spawnEnemy(x, y, config) {
         const enemy = new Enemy(this, x, y, config);
-        this.worldContainer.add([enemy.sprite, enemy.hpBarBg, enemy.hpBar, enemy.nameText]);
         enemy.onLoot = (loot) => {
             this.lootWindow.open(loot, enemy);
         };

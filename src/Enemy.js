@@ -36,6 +36,8 @@ export default class Enemy {
         this.sprite = scene.add.sprite(x, y, 'enemy-idle', 0);
         this.sprite.setScale(2);
         this.sprite.play('enemy-idle');
+
+        scene.worldContainer.add([this.sprite, this.hpBarBg, this.hpBar, this.nameText]);
     }
 
     moveTowardPlayer(player) {
@@ -161,6 +163,7 @@ export default class Enemy {
         this.sprite.play('enemy-dead');
         this.nameText.setText(`${this.name } (Dead)`) // placeholder for now
         this.hpBar.setVisible(false);
+        this.hpBarBg.setVisible(false);
 
         // Make corpse right-clickable
         this.sprite.setInteractive()

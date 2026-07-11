@@ -8,12 +8,14 @@ export default class Projectile {
         this.alive = true;
         
         this.sprite = scene.add.sprite(x, y, config.texture, 0);
-        // this.sprite.setScale(2);
+        
         this.sprite.play(config.animKey);
         this.sprite.rotation = angle; // point the sprite toward travel direction
 
         this.dirX = Math.cos(angle);
         this.dirY = Math.sin(angle);
+
+        scene.worldContainer.add(this.sprite);
     }
 
     update(delta, enemies) {

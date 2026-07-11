@@ -60,6 +60,8 @@ export default class Player {
         this.hpBarBg = scene.add.rectangle(x, y - 28, 40, 6, 0x440000);
         this.hpBar = scene.add.rectangle(x - 20, y - 28, 40, 6, 0x00ff00);
         this.hpBar.setOrigin(0, 0.5);
+
+        scene.worldContainer.add([this.sprite, this.hpBarBg, this.hpBar]);
     }
 
     // Stats

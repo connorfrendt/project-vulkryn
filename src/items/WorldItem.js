@@ -5,6 +5,7 @@ export default class WorldItem {
         this.sprite = scene.add.rectangle(x, y, 24, 24, color);
         this.sprite.setStrokeStyle(2, 0xffffff);
         this.sprite.setInteractive();
+        scene.worldContainer.add(this.sprite);
     }
 
     onPickup(callback) {
