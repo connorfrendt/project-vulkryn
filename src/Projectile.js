@@ -6,8 +6,9 @@ export default class Projectile {
         this.speed = config.speed;
         this.damage = config.damage;
         this.alive = true;
-
+        
         this.sprite = scene.add.sprite(x, y, config.texture, 0);
+        // this.sprite.setScale(2);
         this.sprite.play(config.animKey);
         this.sprite.rotation = angle; // point the sprite toward travel direction
 

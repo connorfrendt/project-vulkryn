@@ -72,7 +72,7 @@ export default class LootWindow {
 
     close() {
         const allLooted = this.currentLoot.every(item => item === null);
-        console.log('All looted', allLooted)
+        
         if(this.currentEnemy) {
             if(allLooted) {
                 this.currentEnemy.looted = true;

@@ -66,9 +66,22 @@ class GameScene extends Phaser.Scene {
         this.map = this.make.tilemap({ key: 'test-room' });
         const tileset = this.map.addTilesetImage('tiles', 'tiles');
         const groundLayer = this.map.createLayer('Tile Layer 1', tileset, 0, 0);
+        // groundLayer.setScale(2);
+        // this.worldContainer = this.add.container(0, 0);
+        // this.uiContianer = this.add.container(0, 0);
+
+        // this.uiCamera = this.cameras.add(0, 0, this.scale.width, this.scale.height);
+        // this.uiCamera.setScroll(0, 0);
+        // this.uiCamera.setZoom(1); // never touched, ever
+
+        // this.cameras.main.ignore(this.uiContianer);
+        // this.uiCamera.ignore(this.worldContainer);
 
         this.input.mouse.disableContextMenu();
         this.player = new Player(this, 700, 300);
+
+        // this.worldContainer.add(this.player.sprite);
+        
         this.cursors = this.input.keyboard.createCursorKeys();
         this.wasd = this.input.keyboard.addKeys({
             up: Phaser.Input.Keyboard.KeyCodes.W,
@@ -168,7 +181,13 @@ class GameScene extends Phaser.Scene {
         });
 
         this.input.on('pointerdown', (pointer) => {
+            const backpackBounds = this.backpack.container.getBounds();
+            console.log(backpackBounds);
             if(pointer.rightButtonDown()) {
+                if(Phaser.Geom.Rectangle.Contains(backpackBounds, pointer.x, pointer.y)) {
+                    console.log('returned');
+                    return; // If pointer is over backpack, don't fire projectile
+                }
                 const angle = Phaser.Math.Angle.Between(
                     this.player.sprite.x, this.player.sprite.y,
                     pointer.worldX, pointer.worldY
@@ -176,7 +195,7 @@ class GameScene extends Phaser.Scene {
                 const fireball = new Projectile(this, this.player.sprite.x, this.player.sprite.y, angle, projectileData.fireball);
                 this.projectiles.push(fireball);
             }
-        })
+        });
     }
 
     spawnEnemy(x, y, config) {
@@ -207,12 +226,27 @@ class GameScene extends Phaser.Scene {
                     chance: [{ itemId: 'shoulderPad', chance: 0.5 }],
                 }
             }
-        )
+        );
     }
 
     update() {
+        // Main camera - follows player
         this.cameras.main.startFollow(this.player.sprite, true, 0.1, 0.1);
-        this.cameras.main.setZoom(2);
+
+        // this.cameras.main.setZoom(1.5);
+        // this.worldContainer.setScale(2);
+        // this.scene.sys.scale.getParentBounds();
+        // this.scene.sys.scale.refresh();
+
+        // UI camera
+        // this.uiCamera = this.cameras.add(0, 0, this.sys.game.config.width, this.sys.game.config.height);
+        // this.uiCamera.setZoom(1);
+
+        // this.cameras.main.ignore(([
+        //     this.characterSheet.container,
+        //     this.backpack.container
+        // ]));
+
         // this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
         // this.cameras.main.setBounds(0, 0, config.width, config.height);
 
@@ -281,9 +315,6 @@ class GameScene extends Phaser.Scene {
             this.player.sprite.x += moveX * this.player.speed;
             this.player.sprite.y += moveY * this.player.speed;
 
-            // const halfWidth = this.player.sprite.displayWidth / 2;
-            // const halfHeight = this.player.sprite.displayHeight / 2;
-
             this.player.sprite.x = Phaser.Math.Clamp(this.player.sprite.x, 0, this.map.widthInPixels);
             this.player.sprite.y = Phaser.Math.Clamp(this.player.sprite.y, 0, this.map.heightInPixels);
     
@@ -329,8 +360,10 @@ class GameScene extends Phaser.Scene {
 
             this.attackRequested = false; // Consume the click either way, so a click during cooldown doesn't queue up
             
+            // if player click is not on backpack or character sheet, fire projectile
             this.projectiles.forEach(projectile => projectile.update(this.game.loop.delta, this.enemies));
             this.projectiles = this.projectiles.filter(projectile => projectile.alive);
+            
         }
 
         // Enemy AI

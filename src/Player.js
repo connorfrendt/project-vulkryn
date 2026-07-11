@@ -56,7 +56,7 @@ export default class Player {
 
         // Visual
         this.sprite = scene.add.sprite(x, y, 'player-idle', 0);
-        // this.sprite.setScale(4);
+        // this.sprite.setScale(2);
         this.hpBarBg = scene.add.rectangle(x, y - 28, 40, 6, 0x440000);
         this.hpBar = scene.add.rectangle(x - 20, y - 28, 40, 6, 0x00ff00);
         this.hpBar.setOrigin(0, 0.5);
