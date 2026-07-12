@@ -14,5 +14,13 @@ export const itemData = {
             strength: 5,
             armor: 8
         }
-    }
+    },
+    steelPants: {
+        name: 'Steel Pants',
+        slot: 'legs',
+        stats: {
+            strength: 5,
+            armor: 12
+        }
+    },
 }

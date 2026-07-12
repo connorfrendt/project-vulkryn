@@ -170,18 +170,24 @@ class GameScene extends Phaser.Scene {
             lootTable: {
                 guaranteed: [],
                 chance: [
-                    { itemId: 'shoulderPad', chance: 0.5 }
+                    { itemId: 'shoulderPad', chance: 1.0 }
                 ],
             }
         });
 
         this.input.on('pointerdown', (pointer) => {
             const backpackBounds = this.backpack.container.getBounds();
-            
+            const characterSheetBounds = this.characterSheet.container.getBounds();
+            const lootWindowBounds = this.lootWindow.container.getBounds();
+
             if(pointer.rightButtonDown()) {
-                if(Phaser.Geom.Rectangle.Contains(backpackBounds, pointer.x, pointer.y)) {
-                    return; // If pointer is over backpack, don't fire projectile
+                // Potentialy make this data driven instead of copy pasted
+                if((Phaser.Geom.Rectangle.Contains(backpackBounds, pointer.x, pointer.y) && this.backpack.visible) ||
+                    (Phaser.Geom.Rectangle.Contains(characterSheetBounds, pointer.x, pointer.y) && this.characterSheet.visible) ||
+                    (Phaser.Geom.Rectangle.Contains(lootWindowBounds, pointer.x, pointer.y) && this.lootWindow.visible)) {
+                    return; // If pointer is over backpack/character sheet/loot window, don't fire projectile
                 }
+
                 const angle = Phaser.Math.Angle.Between(
                     this.player.sprite.x, this.player.sprite.y,
                     pointer.worldX, pointer.worldY
@@ -224,32 +230,13 @@ class GameScene extends Phaser.Scene {
                 maxHp: 30,
                 lootTable: {
                     guaranteed: [],
-                    chance: [{ itemId: 'shoulderPad', chance: 0.5 }],
+                    chance: [{ itemId: 'shoulderPad', chance: 1.0 }],
                 }
             }
         );
     }
 
     update() {
-
-
-        // this.cameras.main.setZoom(1.5);
-        // this.worldContainer.setScale(2);
-        // this.scene.sys.scale.getParentBounds();
-        // this.scene.sys.scale.refresh();
-
-        // UI camera
-        // this.uiCamera = this.cameras.add(0, 0, this.sys.game.config.width, this.sys.game.config.height);
-        // this.uiCamera.setZoom(1);
-
-        // this.cameras.main.ignore(([
-        //     this.characterSheet.container,
-        //     this.backpack.container
-        // ]));
-
-        // this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-        // this.cameras.main.setBounds(0, 0, config.width, config.height);
-
         // TODO: FOR USE LATER
         // this.cameras.main.shake(200, 0.01); // duration ms, intensity
         // this.cameras.main.flash(200, 255, 0, 0); // red flash, e.g. on player hit
@@ -283,6 +270,12 @@ class GameScene extends Phaser.Scene {
             if(this.cursors.up.isDown || this.wasd.up.isDown) dirY = -1;
             if(this.cursors.down.isDown || this.wasd.down.isDown) dirY = 1;
     
+            // Close loot window on movement
+            if((dirX !== 0 || dirY !== 0) && this.lootWindow.visible) {
+                console.log('closed loot window on movement');
+                this.lootWindow.close();
+            }
+
             // Dash Start
             if(Phaser.Input.Keyboard.JustDown(this.spaceKey) && !this.dashActive && this.dashCooldown <=0 && (dirX != 0 || dirY !== 0)) {
                 this.dashActive = true;

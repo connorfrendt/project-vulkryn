@@ -135,13 +135,18 @@ export default class Player {
 
     // Inventory
     addToInventory(item) {
-        if(this.inventory.length >= this.inventoryMax) {
-            return false;
+        const emptyIndex = this.inventory.findIndex(slot => slot === null || slot === undefined);
+        if(emptyIndex !== -1) {
+            this.inventory[emptyIndex] = item;
+            return true;
         }
-        else {
+        
+        if(this.inventory.length < this.inventoryMax) {
             this.inventory.push(item);
             return true;
         }
+        
+        return false;
     }
 
     removeFromInventory(item) {
@@ -150,7 +155,8 @@ export default class Player {
             return;
         }
         else {
-            this.inventory.splice(index, 1);
+            // this.inventory.splice(index, 1);
+            this.inventory[index] = null;
         }
     }
 
