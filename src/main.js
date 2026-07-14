@@ -205,6 +205,29 @@ class GameScene extends Phaser.Scene {
         this.uiCamera.ignore(this.worldContainer);
     }
 
+    getUIPanelAt(pointer) {
+        const backpackBounds = new Phaser.Geom.Rectangle(
+            this.backpack.container.x,
+            this.backpack.container.y,
+            this.backpack.panelWidth,
+            this.backpack.panelHeight,
+        );
+        const characterSheetBounds = new Phaser.Geom.Rectangle(
+            this.characterSheet.container.x,
+            this.characterSheet.container.y,
+            this.characterSheet.panelWidth,
+            this.characterSheet.panelHeight,
+        )
+
+        if(this.backpack.visible && Phaser.Geom.Rectangle.Contains(backpackBounds, pointer.x, pointer.y)) {
+            return this.backpack;
+        }
+        if(this.characterSheet.visible && Phaser.Geom.Rectangle.Contains(characterSheetBounds, pointer.x, pointer.y)) {
+            return this.characterSheet;
+        }
+        return null;
+    }
+
     spawnEnemy(x, y, config) {
         const enemy = new Enemy(this, x, y, config);
         enemy.onLoot = (loot) => {

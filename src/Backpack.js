@@ -5,6 +5,8 @@ const MARGIN = 20;
 export default class Backpack {
     constructor(scene, player) {
         this.scene = scene;
+        this.panelWidth = PANEL_WIDTH;
+        this.panelHeight = PANEL_HEIGHT;
         this.player = player;
         this.visible = false;
         this.container = scene.add.container(0, 0);
@@ -43,14 +45,18 @@ export default class Backpack {
 
             const box = this.scene.add.rectangle(x, y, 40, 40, 0x222223);
             box.setStrokeStyle(1, 0x8888ff);
-            box.setInteractive();
+            // box.setInteractive({ draggable: true });
 
+            const itemIcon = this.scene.add.rectangle(x, y, 32, 32, 0x223322);
+            itemIcon.setVisible(false);
+            itemIcon.setInteractive({ draggable: true });
+            
             const itemText = this.scene.add.text(x - 18, y - 8, '', {
                 fontSize: '11px',
                 fill: '#ffaa00',
             });
 
-            box.on('pointerdown', (pointer) => {
+            itemIcon.on('pointerdown', (pointer) => {
                 if(!pointer.rightButtonDown()) {
                     return;
                 }
@@ -66,33 +72,49 @@ export default class Backpack {
                         }
                     }
                 }
-                
+            });
+
+            itemIcon.on('dragstart', (pointer) => {
+                console.log('dragstart', i);
+            });
+
+            itemIcon.on('drag', (pointer, dragX, dragY) => {
+                itemIcon.x = pointer.x - this.container.x;
+                itemIcon.y = pointer.y - this.container.y;
+            });
+
+            itemIcon.on('dragend', (pointer) => {
+                console.log('dragend', i, this.scene.getUIPanelAt(pointer));
+                itemIcon.x = x;
+                itemIcon.y = y;
             });
 
             this.container.add([
                 box,
+                itemIcon,
                 itemText
             ]);
 
             this.slotBoxes.push({
                 box,
+                itemIcon,
                 itemText
             });
         }
     }
 
     refresh() {
-        this.slotBoxes.forEach(({ box, itemText }, index) => {
+        this.slotBoxes.forEach(({ itemIcon, itemText }, index) => {
             const item = this.player.inventory[index];
             if(item) {
                 itemText.setText(item.name);
-                box.setFillStyle(0x223322);
+                itemIcon.setVisible(true);
             }
             else {
                 itemText.setText('');
-                box.setFillStyle(0x222223);
+                itemIcon.setVisible(false);
             }
-        })
+        });
     }
 
     toggle() {

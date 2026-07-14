@@ -1,3 +1,6 @@
+const PANEL_WIDTH = 300;
+const PANEL_HEIGHT = 400;
+
 const slotLayout = [
     { slotName: 'head', label: 'Helm', x: 40, y: 100 },
     { slotName: 'shoulders', label: 'Shoulder', x: 40, y: 150 }
@@ -6,6 +9,8 @@ const slotLayout = [
 export default class CharacterSheet {
     constructor(scene, player) {
         this.scene = scene;
+        this.panelWidth = PANEL_WIDTH;
+        this.panelHeight = PANEL_HEIGHT
         this.player = player;
         this.visible = false;
         this.container = scene.add.container(0, 0);
@@ -16,7 +21,7 @@ export default class CharacterSheet {
 
     build() {
         // BG panel
-        const bg = this.scene.add.rectangle(160, 210, 300, 400, 0x111122);
+        const bg = this.scene.add.rectangle(PANEL_WIDTH / 2, PANEL_HEIGHT / 2, PANEL_WIDTH, PANEL_HEIGHT, 0x111122);
         bg.setStrokeStyle(2, 0x8888ff);
 
         // Title
