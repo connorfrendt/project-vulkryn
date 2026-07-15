@@ -84,7 +84,32 @@ export default class Backpack {
             });
 
             itemIcon.on('dragend', (pointer) => {
-                console.log('dragend', i, this.scene.getUIPanelAt(pointer));
+                
+                const droppedPanel = this.scene.getUIPanelAt(pointer);
+                const item = this.player.inventory[i];
+                if(droppedPanel === this.scene.characterSheet && item) {
+                    const slotName = item.slot;
+                    const existingItem = this.player.equipment[slotName];
+
+                    // Remove dragged item from backpack first
+                    this.player.removeFromInventory(item);
+
+                    // If something's already equipped there, send it back to the backpack
+                    if(existingItem) {
+                        this.player.addToInventory(existingItem);
+                    }
+
+                    // Equip the dragged item
+                    this.player.equipment[slotName] = item;
+
+                    this.refresh();
+                    this.scene.characterSheet.refresh();
+
+                    if(this.onEquip) {
+                        this.onEquip();
+                    }
+                }
+
                 itemIcon.x = x;
                 itemIcon.y = y;
             });

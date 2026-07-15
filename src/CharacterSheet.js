@@ -62,22 +62,50 @@ export default class CharacterSheet {
             const labelText = this.scene.add.text(x + 25, y - 10, label, { fontSize: '14px', fill: '#aaaaaa' });
             const box = this.scene.add.rectangle(x, y, 40, 40, 0x222223);
             
-            box.setStrokeStyle(1, 0x8888ff);
-            box.setInteractive();
+            const itemIcon = this.scene.add.rectangle(x, y, 32, 32, 0x223322);
+            itemIcon.setVisible(false);
+            itemIcon.setInteractive({ draggable: true });
+
             const statusText = this.scene.add.text(x - 25, y + 20, 'Empty', { fontSize: '11px', fill: '#666666' });
 
-            box.on('pointerdown', () => {
-                if(this.player.equipment[slotName]) this.unequip(slotName);
+            itemIcon.on('dragstart', () => {});
+
+            itemIcon.on('drag', (pointer) => {
+                itemIcon.x = pointer.x - this.container.x;
+                itemIcon.y = pointer.y - this.container.y;
             });
+
+            itemIcon.on('dragend', (pointer) => {
+                const droppedPanel = this.scene.getUIPanelAt(pointer);
+                const item = this.player.equipment[slotName];
+
+                if(droppedPanel === this.scene.backpack && item) {
+                    const added = this.player.addToInventory(item);
+
+                    if(added) {
+                        this.player.equipment[slotName] = null;
+                        this.refresh();
+                        this.scene.backpack.refresh();
+                    }
+                }
+
+                itemIcon.x = x;
+                itemIcon.y = y;
+            })
+
+            // box.setStrokeStyle(1, 0x8888ff);
+            // box.setInteractive();
+            // const statusText = this.scene.add.text(x - 25, y + 20, 'Empty', { fontSize: '11px', fill: '#666666' });
 
             // Add to container
             this.container.add([
                 labelText,
                 box,
+                itemIcon,
                 statusText
             ]);
 
-            this.slots[slotName] = { box, statusText };
+            this.slots[slotName] = { box, itemIcon, statusText };
         });
 
     }
@@ -88,16 +116,17 @@ export default class CharacterSheet {
     }
 
     unequip(slot) {
-        this.player.equipment[slot] = null;
+        // this.player.equipment[slot] = null;
         this.refresh();
     }
 
     refresh() {
-        Object.entries(this.slots).forEach(([slotName, { box, statusText }]) => {
+        Object.entries(this.slots).forEach(([slotName, { box, itemIcon, statusText }]) => {
             const isEquipped = this.player.equipment[slotName] !== null;
             statusText.setText(isEquipped ? 'Equipped' : 'Empty');
             statusText.setStyle({ fill: isEquipped ? '#00ff88' : '#666666' });
             box.setFillStyle(isEquipped ? 0x223322 : 0x222233);
+            itemIcon.setVisible(isEquipped);
         });
 
         this.strengthText.setText(`Strength: ${this.player.strength}`);

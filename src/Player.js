@@ -155,7 +155,6 @@ export default class Player {
             return;
         }
         else {
-            // this.inventory.splice(index, 1);
             this.inventory[index] = null;
         }
     }
